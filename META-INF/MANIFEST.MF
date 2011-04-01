@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Concordion IDE
+Bundle-SymbolicName: org.concordion.ide.eclipse;singleton:=true
+Bundle-Version: 0.1.0
+Bundle-Activator: org.concordion.ide.eclipse.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.wst.sse.ui,
+ org.eclipse.wst.html.core,
+ org.eclipse.jface.text,
+ org.eclipse.wst.validation,
+ org.eclipse.ui.ide,
+ org.eclipse.core.resources,
+ org.eclipse.jdt.core,
+ org.eclipse.wst.sse.core,
+ org.eclipse.wst.xml.core
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ClassPath: lib/concordion-1.4.1.jar,
+ lib/ognl-2.6.9.jar,
+ lib/xom-1.2.5.jar,
+ .
+Export-Package: org.concordion.ide.eclipse.assist,
+ org.concordion.ide.eclipse.parser
