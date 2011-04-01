@@ -42,7 +42,6 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 	
 	@Override
 	public void validate(IValidationContext helper, IReporter reporter) throws ValidationException {
-		System.err.println("Validation");
 		reporter.removeAllMessages(this);
 		// TODO: Use DOM model for isConcordionSpec
 		if (rootElementParser.isConcordionSpec(document)) {
@@ -59,7 +58,6 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 	@Override
 	public void validate(IRegion dirtyRegion, IValidationContext helper, IReporter reporter) {
 		try {
-			System.err.print("Partial ");
 			validate(helper, reporter);
 		} catch (ValidationException e) {
 			// Ignore - document is currently being edited and might be in an invalid state
