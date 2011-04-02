@@ -1,6 +1,21 @@
 Concordion Eclipse Plugin
 =========================
 
-Provides content assist and validation for Concordion Specs in the Eclipse IDE 
+Provides content assist and validation for Concordion Specs in the Eclipse IDE
 
-License: Eclipse Public License (EPL) - v1.0
+Included 3rd party libs:
+
+- Concordion
+  Apache v2 License
+  Copyright (c) 2007-2009 David Peterson
+  http://www.concordion.org/Licence.html
+
+- OGNL
+  OpenSymphony 1.1 License
+  This product includes software developed by the OpenSymphony Group (http://www.opensymphony.com/).
+  http://www.opensymphony.com/ognl/license.action
+
+- XOM
+  LGPL 2.1
+  XOM is Copyright 2002-2005 Elliotte Rusty Harold 
+  http://www.xom.nu/license.xhtml
