@@ -6,6 +6,7 @@ import org.concordion.ide.eclipse.parser.InvalidCommandHandlerImpl;
 import org.concordion.ide.eclipse.parser.ProblemReporterFactory;
 import org.concordion.ide.eclipse.parser.RootElementParser;
 import org.concordion.ide.eclipse.parser.SetExpressionParser;
+import org.concordion.ide.eclipse.parser.VerifyRowsExpressionParser;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.sse.core.StructuredModelManager;
@@ -42,7 +43,6 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 	
 	@Override
 	public void validate(IValidationContext helper, IReporter reporter) throws ValidationException {
-		System.err.println("Validation");
 		reporter.removeAllMessages(this);
 		// TODO: Use DOM model for isConcordionSpec
 		if (rootElementParser.isConcordionSpec(document)) {
@@ -59,7 +59,6 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 	@Override
 	public void validate(IRegion dirtyRegion, IValidationContext helper, IReporter reporter) {
 		try {
-			System.err.print("Partial ");
 			validate(helper, reporter);
 		} catch (ValidationException e) {
 			// Ignore - document is currently being edited and might be in an invalid state
@@ -77,6 +76,7 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 			new InvalidCommandHandlerImpl());
 		
 		specParser.addCommandParser(CommandName.SET, new SetExpressionParser());
+		specParser.addCommandParser(CommandName.VERIFY_ROWS, new VerifyRowsExpressionParser());
 		
 		specParser.visitNodeRecursive(root);
 	}

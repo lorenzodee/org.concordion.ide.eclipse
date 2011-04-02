@@ -78,7 +78,7 @@ public class MethodProposalProvider implements ProposalProvider {
 			if (str.length() > 1) {
 				str.append(", ");
 			}
-			str.append(param);
+			str.append('#').append(param);
 		}
 		return str.append(")").toString();
 	}

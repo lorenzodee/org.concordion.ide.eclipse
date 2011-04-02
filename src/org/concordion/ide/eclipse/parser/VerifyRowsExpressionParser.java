@@ -11,6 +11,7 @@ public class VerifyRowsExpressionParser implements ExpressionParser {
         Matcher matcher = pattern.matcher(expression);
         if (!matcher.matches()) {
             problemReporter.reportError("The expression for a \"verifyRows\" should be of the form: #var : collectionExpr");
+            return;
         }
         String loopVariableName = matcher.group(1);
         String iterableExpression = matcher.group(2);
