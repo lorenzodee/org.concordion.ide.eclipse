@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
@@ -25,9 +26,14 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.wst.sse.core.StructuredModelManager;
+import org.eclipse.wst.sse.core.internal.provisional.IStructuredModel;
+import org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel;
 import org.osgi.framework.Bundle;
 
+@SuppressWarnings("restriction")
 public class EclipseUtils {
+	
 	public static IWorkbenchPage getActivePage() {
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		if (workbench == null) return null;
@@ -107,5 +113,10 @@ public class EclipseUtils {
 			}
 		}
 		return null;
+	}
+
+	public static IDOMModel domModelForDocument(IDocument document) {
+		IStructuredModel model = StructuredModelManager.getModelManager().getExistingModelForRead(document);
+		return model instanceof IDOMModel ? (IDOMModel) model : null;
 	}
 }

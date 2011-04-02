@@ -20,7 +20,7 @@ public class MethodProposalProvider implements ProposalProvider {
 
 	public MethodProposalProvider() {
 	}
-	
+
 	public MethodProposalProvider(String propsalPrefix) {
 		this.propsalPrefix = propsalPrefix;
 	}
@@ -30,19 +30,29 @@ public class MethodProposalProvider implements ProposalProvider {
 		return createMethodProposals(offset, propsalPrefix );
 	}
 	
-	private static List<ICompletionProposal> createMethodProposals(int offset, String prefix) {
+	private List<ICompletionProposal> createMethodProposals(int offset, String prefix) {
 		IFile specFile = EclipseUtils.getActiveEditorFile();
 		IJavaProject javaProject = EclipseUtils.getJavaProjectForFile(specFile);
 		if (javaProject != null) {
-			String typeName = noExtensionFileName(specFile) + "Test";
-			String fileName = typeName + ".java";
-			IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
-			IType type = EclipseUtils.getTypeForFile(javaFile, typeName);
+			IType type = findSpecType(specFile);
 			if (type != null) {
 				return createAccessibleMethodProposals(type, offset, prefix);
 			}
 		}
 		return emptyList();
+	}
+
+	private static IType findSpecType(IFile specFile) {
+		IType type = findSpecType(specFile, "Test");
+		return type == null ? findSpecType(specFile, "") : type;
+	}
+
+	private static IType findSpecType(IFile specFile, String specTypePostfix) {
+		String typeName = noExtensionFileName(specFile) + specTypePostfix;
+		String fileName = typeName + ".java";
+		IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
+		IType type = EclipseUtils.getTypeForFile(javaFile, typeName);
+		return type;
 	}
 
 	private static List<ICompletionProposal> createAccessibleMethodProposals(IType type, int offset, String prefix) {

@@ -11,8 +11,6 @@ import org.concordion.ide.eclipse.parser.SetCommandValidator;
 import org.concordion.ide.eclipse.parser.VerifyRowsCommandValidator;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.wst.sse.core.StructuredModelManager;
-import org.eclipse.wst.sse.core.internal.provisional.IStructuredModel;
 import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -48,10 +46,8 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 		reporter.removeAllMessages(this);
 		// TODO: Use DOM model for isConcordionSpec
 		if (rootElementParser.isConcordionSpec(document)) {
-			IStructuredModel model = StructuredModelManager.getModelManager().getExistingModelForRead(document);
-			if (model instanceof IDOMModel) {
-				// TODO: Always XML model, for all html files? Change RootElementParser to parse DOM model instead of string
-				IDOMModel domModel = (IDOMModel) model;
+			IDOMModel domModel = EclipseUtils.domModelForDocument(document);
+			if (domModel != null) {
 				doParseSpec(domModel.getDocument(), reporter, rootElementParser.getNamespacePrefix());
 			}
 		}
