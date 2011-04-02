@@ -2,7 +2,7 @@ package org.concordion.ide.eclipse.parser;
 
 import org.concordion.internal.SimpleEvaluator;
 
-public class ExpressionValidator {
+public class ExpressionSupport {
 	public static void validateEvaluationExpression(String expression, ProblemReporter problemReporter) {
         try {
 			SimpleEvaluator.validateEvaluationExpression(expression);

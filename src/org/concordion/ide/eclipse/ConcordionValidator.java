@@ -2,11 +2,13 @@ package org.concordion.ide.eclipse;
 
 import org.concordion.ide.eclipse.parser.CommandAttributeVisitor;
 import org.concordion.ide.eclipse.parser.CommandName;
+import org.concordion.ide.eclipse.parser.EvaluationCommandValidator;
 import org.concordion.ide.eclipse.parser.InvalidCommandHandlerImpl;
 import org.concordion.ide.eclipse.parser.ProblemReporterFactory;
 import org.concordion.ide.eclipse.parser.RootElementParser;
-import org.concordion.ide.eclipse.parser.SetExpressionParser;
-import org.concordion.ide.eclipse.parser.VerifyRowsExpressionParser;
+import org.concordion.ide.eclipse.parser.RunCommandValidator;
+import org.concordion.ide.eclipse.parser.SetCommandValidator;
+import org.concordion.ide.eclipse.parser.VerifyRowsCommandValidator;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.sse.core.StructuredModelManager;
@@ -75,8 +77,17 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 			new ProblemReporterFactory(this, reporter),
 			new InvalidCommandHandlerImpl());
 		
-		specParser.addCommandParser(CommandName.SET, new SetExpressionParser());
-		specParser.addCommandParser(CommandName.VERIFY_ROWS, new VerifyRowsExpressionParser());
+		specParser.addCommandParser(CommandName.SET, new SetCommandValidator());
+		specParser.addCommandParser(CommandName.VERIFY_ROWS, new VerifyRowsCommandValidator());
+		
+		specParser.addCommandParser(CommandName.ASSERT_EQUALS, new EvaluationCommandValidator());
+		specParser.addCommandParser(CommandName.ASSERT_FALSE, new EvaluationCommandValidator());
+		specParser.addCommandParser(CommandName.ASSERT_TRUE, new EvaluationCommandValidator());
+		specParser.addCommandParser(CommandName.ECHO, new EvaluationCommandValidator());
+		specParser.addCommandParser(CommandName.EXECUTE, new EvaluationCommandValidator());
+		specParser.addCommandParser(CommandName.PARAMS, new EvaluationCommandValidator());
+		
+		specParser.addCommandParser(CommandName.RUN, new RunCommandValidator());
 		
 		specParser.visitNodeRecursive(root);
 	}

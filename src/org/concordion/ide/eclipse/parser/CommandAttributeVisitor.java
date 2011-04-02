@@ -17,7 +17,7 @@ public class CommandAttributeVisitor {
 
 	private IDocument document;
 	private String nsPrefix;
-	private Map<CommandName, ExpressionParser> commandParsers = new HashMap<CommandName, ExpressionParser>();
+	private Map<CommandName, CommandValidator> commandParsers = new HashMap<CommandName, CommandValidator>();
 	private InvalidCommandHandler invalidCommandHandler;
 	private ProblemReporterFactory problemReporterFactory;
 	
@@ -64,7 +64,7 @@ public class CommandAttributeVisitor {
 		int valueLen = adjustLengthForValueIfExists(attribute, offset, nameLen);
 		
 		line = getLine(offset);
-		visitConcordionAttribute(attribute.getLocalName(), attribute.getValue(), line, offset, nameLen, valueLen);
+		visitConcordionAttribute(attribute.getLocalName(), attribute.getValue(), line, offset, nameLen, valueLen, attribute.getOwnerElement());
 	}
 
 	private int adjustLengthForValueIfExists(IDOMAttr attribute, int offset, int len) {
@@ -87,25 +87,25 @@ public class CommandAttributeVisitor {
 		return line;
 	}
 
-	private void visitConcordionAttribute(String localName, String value, int line, int offset, int nameLen, int valueLen) {
+	private void visitConcordionAttribute(String localName, String value, int line, int offset, int nameLen, int valueLen, Element element) {
 		CommandName cmd = CommandName.fromCommandName(localName);
 		if (cmd != null) {
 			ProblemReporter problemReporter = problemReporterFactory.createProblemReporter(line, offset, valueLen);
-			fireParseCommand(cmd, value, problemReporter);
+			fireParseCommand(cmd, value, problemReporter, element);
 		} else {
 			ProblemReporter problemReporter = problemReporterFactory.createProblemReporter(line, offset, nameLen);
 			invalidCommandHandler.handleInvalidCommand(localName, value, problemReporter);
 		}
 	}
 
-	private void fireParseCommand(CommandName cmd, String value, ProblemReporter problemReporter) {
-		ExpressionParser parser = commandParsers.get(cmd);
+	private void fireParseCommand(CommandName cmd, String value, ProblemReporter problemReporter, Element element) {
+		CommandValidator parser = commandParsers.get(cmd);
 		if (parser != null) {
-			parser.parseExpression(value, problemReporter);
+			parser.parseExpression(value, problemReporter, element);
 		}
 	}
 
-	public void addCommandParser(CommandName commandName, ExpressionParser commandParser) {
+	public void addCommandParser(CommandName commandName, CommandValidator commandParser) {
 		commandParsers.put(commandName, commandParser);
 	}
 }

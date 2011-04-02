@@ -11,6 +11,7 @@ public enum CommandName {
 	EXECUTE("execute"),
 	SET("set"),
 	VERIFY_ROWS("verifyRows"),
+	PARAMS("params"),
 	ECHO("echo");
 	
 	private String commandName;
