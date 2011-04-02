@@ -3,9 +3,16 @@ package org.concordion.ide.eclipse.assist;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class Assist implements ProposalProvider {
+
+	private IFile specFile;
+	
+	public Assist(IFile specFile) {
+		this.specFile = specFile;
+	}
 
 	@Override
 	public List<ICompletionProposal> provideProposal(AssistContext assistContext, String namespacePrefix, int offset) {
@@ -27,9 +34,9 @@ public class Assist implements ProposalProvider {
 		case EXECUTE:
 		case RUN:
 		case ECHO:
-			return new MethodProposalProvider();
+			return new MethodProposalProvider(specFile);
 		case VERIFY_ROWS:
-			return new MethodProposalProvider("#var : ");
+			return new MethodProposalProvider(specFile, "#var : ");
 		case SET:
 			return new SetProposalProvider();
 		case PARTIAL_NS_PREFIX:

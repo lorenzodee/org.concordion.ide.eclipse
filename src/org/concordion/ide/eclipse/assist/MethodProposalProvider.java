@@ -16,12 +16,15 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class MethodProposalProvider implements ProposalProvider {
 
+	private IFile specFile;
 	private String propsalPrefix = null;
 
-	public MethodProposalProvider() {
+	public MethodProposalProvider(IFile specFile) {
+		this.specFile = specFile;
 	}
 
-	public MethodProposalProvider(String propsalPrefix) {
+	public MethodProposalProvider(IFile specFile, String propsalPrefix) {
+		this.specFile = specFile;
 		this.propsalPrefix = propsalPrefix;
 	}
 
@@ -31,7 +34,6 @@ public class MethodProposalProvider implements ProposalProvider {
 	}
 	
 	private List<ICompletionProposal> createMethodProposals(int offset, String prefix) {
-		IFile specFile = EclipseUtils.getActiveEditorFile();
 		IJavaProject javaProject = EclipseUtils.getJavaProjectForFile(specFile);
 		if (javaProject != null) {
 			IType type = findSpecType(specFile);

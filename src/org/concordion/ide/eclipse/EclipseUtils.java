@@ -6,6 +6,7 @@ import java.util.Collections;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
@@ -18,14 +19,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.wst.sse.core.StructuredModelManager;
 import org.eclipse.wst.sse.core.internal.provisional.IStructuredModel;
 import org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel;
@@ -33,45 +26,6 @@ import org.osgi.framework.Bundle;
 
 @SuppressWarnings("restriction")
 public class EclipseUtils {
-	
-	public static IWorkbenchPage getActivePage() {
-		final IWorkbench workbench = PlatformUI.getWorkbench();
-		if (workbench == null) return null;
-		
-		final IWorkbenchWindow windowHolder[] = new IWorkbenchWindow[1];
-		// TODO: Surely there's a better way to achieve this?
-		Display.getDefault().syncExec(new Runnable() {
-			@Override
-			public void run() {
-				 windowHolder[0] = workbench.getActiveWorkbenchWindow();
-			}
-		});
-		IWorkbenchWindow window = windowHolder[0];
-		return window == null ? null : window.getActivePage();
-	}
-
-	public static IEditorPart getActiveEditor() {
-		IWorkbenchPage page = getActivePage();
-		IEditorPart editor = null;
-		if (page != null && page.isEditorAreaVisible()) {
-			editor = page.getActiveEditor();
-		}
-		return editor;
-	}
-
-	public static IFile getActiveEditorFile() {
-		IEditorPart editor = getActiveEditor();
-		IFile file = null;
-		if (editor != null) {
-			IEditorInput input = editor.getEditorInput();
-			file = (IFile) input.getAdapter(IFile.class);
-			if (file == null && input instanceof IFileEditorInput) {
-				file = ((IFileEditorInput) input).getFile();
-			}
-		}
-		return file;
-	}
-
 	public static void logError(String string, IOException ex) {
 		IStatus status = new Status(IStatus.WARNING, Activator.PLUGIN_ID, IStatus.OK, ex.getMessage(), ex);
 
@@ -118,5 +72,15 @@ public class EclipseUtils {
 	public static IDOMModel domModelForDocument(IDocument document) {
 		IStructuredModel model = StructuredModelManager.getModelManager().getExistingModelForRead(document);
 		return model instanceof IDOMModel ? (IDOMModel) model : null;
+	}
+	
+	public static IFile fileForModel(IStructuredModel model) {
+		if (model == null) {
+			return null;
+		}
+		
+		Path path = new Path(model.getBaseLocation());
+		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+		return file.exists() ? file : null;
 	}
 }
