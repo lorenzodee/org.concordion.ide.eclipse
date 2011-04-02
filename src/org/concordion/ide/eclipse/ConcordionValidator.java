@@ -5,7 +5,7 @@ import org.concordion.ide.eclipse.parser.CommandName;
 import org.concordion.ide.eclipse.parser.InvalidCommandHandlerImpl;
 import org.concordion.ide.eclipse.parser.ProblemReporterFactory;
 import org.concordion.ide.eclipse.parser.RootElementParser;
-import org.concordion.ide.eclipse.parser.SetCommandParser;
+import org.concordion.ide.eclipse.parser.SetExpressionParser;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.sse.core.StructuredModelManager;
@@ -76,7 +76,7 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 			new ProblemReporterFactory(this, reporter),
 			new InvalidCommandHandlerImpl());
 		
-		specParser.addCommandParser(CommandName.SET, new SetCommandParser());
+		specParser.addCommandParser(CommandName.SET, new SetExpressionParser());
 		
 		specParser.visitNodeRecursive(root);
 	}
