@@ -15,13 +15,16 @@ public class ProposalSupport {
 		return new CompletionProposal(choice, offset, replacementLen, cursorPos, image, display, null, null);
 	}
 
-	static List<ICompletionProposal> createProposals(String[] choices, int offset, String postfix, int cursorOffset, int replacementLen) {
+	static List<ICompletionProposal> createProposals(String[] choices, int offset, String prefix, String postfix, int cursorOffset, int replacementLen) {
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		for (String choice : choices) {
 			int len = choice.length();
 			String display = choice;
 			if (postfix != null) {
 				choice = choice + postfix;
+			}
+			if (prefix != null) {
+				choice = prefix + choice;
 			}
 			CompletionProposal proposal = createProposal(display, choice, offset - replacementLen, len + cursorOffset, len, replacementLen);
 			proposals.add(proposal);

@@ -6,7 +6,16 @@ import java.util.List;
 
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
-public class NsPrefixProposalProvider implements ProposalProvider {
+public class CommandProposalProvider implements ProposalProvider {
+
+	private String proposalPrefix = null;
+
+	public CommandProposalProvider() {
+	}
+
+	public CommandProposalProvider(String prefix) {
+		this.proposalPrefix = prefix;
+	}
 
 	@Override
 	public List<ICompletionProposal> provideProposal(AssistContext assistContext, String namespacePrefix, int offset) {
@@ -14,11 +23,12 @@ public class NsPrefixProposalProvider implements ProposalProvider {
 		if (assistContext.hasPrefix()) {
 			replacementLen = assistContext.getPrefix().length();
 		}
-		return ProposalSupport.createProposals(filter(AssistType.allCommands(), assistContext), offset, "=\"\"", 2, replacementLen);
+		String[] commands = filter(AssistType.allCommands(), assistContext);
+		int prefixLen = proposalPrefix == null ? 0 : proposalPrefix.length();
+		return ProposalSupport.createProposals(commands, offset, proposalPrefix , "=\"\"", 2 + prefixLen, replacementLen);
 	}
 
-
-	private String[] filter(String[] allCommands, AssistContext context) {
+	private static String[] filter(String[] allCommands, AssistContext context) {
 		if (!context.hasPrefix()) {
 			return allCommands;
 		}

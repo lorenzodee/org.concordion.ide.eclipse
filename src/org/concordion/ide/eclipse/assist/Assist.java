@@ -9,18 +9,18 @@ public class Assist implements ProposalProvider {
 
 	@Override
 	public List<ICompletionProposal> provideProposal(AssistContext assistContext, String namespacePrefix, int offset) {
-		ProposalProvider proposalProvider = createProposalProvider(assistContext);
+		ProposalProvider proposalProvider = createProposalProvider(assistContext, namespacePrefix);
 		return proposalProvider == null ? 
 			Collections.<ICompletionProposal>emptyList() : 
 			proposalProvider.provideProposal(assistContext, namespacePrefix, offset);
 	}
 	
-	private ProposalProvider createProposalProvider(AssistContext assistContext) {
+	private ProposalProvider createProposalProvider(AssistContext assistContext, String namespacePrefix) {
 		ProposalProvider delegate = null;
 		
 		switch (assistContext.getType()) {
 		case NS_PREFIX:
-			return new NsPrefixProposalProvider();
+			return new CommandProposalProvider();
 		case ASSERT_EQUALS:
 		case ASSERT_TRUE:
 		case ASSERT_FALSE:
@@ -33,9 +33,13 @@ public class Assist implements ProposalProvider {
 		case SET:
 			return new SetProposalProvider();
 		case PARTIAL_NS_PREFIX:
-			return new PartialNsPrefixProposalProvider();
+			return new PartialNsPrefixProposalProvider(prefixCompletion(assistContext.getPrefix(), namespacePrefix));
 		}
 		
 		return delegate;
+	}
+
+	private String prefixCompletion(String prefix, String namespacePrefix) {
+		return namespacePrefix.substring(prefix.length()) + ":";
 	}
 }
