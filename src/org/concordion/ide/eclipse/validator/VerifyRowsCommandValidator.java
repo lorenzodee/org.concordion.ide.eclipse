@@ -1,4 +1,4 @@
-package org.concordion.ide.eclipse.parser;
+package org.concordion.ide.eclipse.validator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

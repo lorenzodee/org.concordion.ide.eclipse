@@ -1,4 +1,4 @@
-package org.concordion.ide.eclipse.parser;
+package org.concordion.ide.eclipse.validator;
 
 import org.w3c.dom.Element;
 

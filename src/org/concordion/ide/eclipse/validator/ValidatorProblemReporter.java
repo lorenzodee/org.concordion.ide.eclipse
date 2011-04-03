@@ -1,4 +1,4 @@
-package org.concordion.ide.eclipse.parser;
+package org.concordion.ide.eclipse.validator;
 
 import org.eclipse.wst.validation.internal.operations.LocalizedMessage;
 import org.eclipse.wst.validation.internal.provisional.core.IMessage;

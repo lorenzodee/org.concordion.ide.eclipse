@@ -6,7 +6,7 @@ import java.util.List;
 import org.concordion.ide.eclipse.assist.Assist;
 import org.concordion.ide.eclipse.assist.AssistContext;
 import org.concordion.ide.eclipse.assist.ContextParser;
-import org.concordion.ide.eclipse.parser.RootElementParser;
+import org.concordion.ide.eclipse.validator.RootElementParser;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;

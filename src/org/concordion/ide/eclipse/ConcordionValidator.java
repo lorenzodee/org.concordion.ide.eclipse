@@ -1,14 +1,14 @@
 package org.concordion.ide.eclipse;
 
-import org.concordion.ide.eclipse.parser.CommandAttributeVisitor;
-import org.concordion.ide.eclipse.parser.CommandName;
-import org.concordion.ide.eclipse.parser.EvaluationCommandValidator;
-import org.concordion.ide.eclipse.parser.InvalidCommandHandlerImpl;
-import org.concordion.ide.eclipse.parser.ProblemReporterFactory;
-import org.concordion.ide.eclipse.parser.RootElementParser;
-import org.concordion.ide.eclipse.parser.RunCommandValidator;
-import org.concordion.ide.eclipse.parser.SetCommandValidator;
-import org.concordion.ide.eclipse.parser.VerifyRowsCommandValidator;
+import org.concordion.ide.eclipse.validator.CommandAttributeVisitor;
+import org.concordion.ide.eclipse.validator.CommandName;
+import org.concordion.ide.eclipse.validator.EvaluationCommandValidator;
+import org.concordion.ide.eclipse.validator.InvalidCommandHandlerImpl;
+import org.concordion.ide.eclipse.validator.ProblemReporterFactory;
+import org.concordion.ide.eclipse.validator.RootElementParser;
+import org.concordion.ide.eclipse.validator.RunCommandValidator;
+import org.concordion.ide.eclipse.validator.SetCommandValidator;
+import org.concordion.ide.eclipse.validator.VerifyRowsCommandValidator;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
