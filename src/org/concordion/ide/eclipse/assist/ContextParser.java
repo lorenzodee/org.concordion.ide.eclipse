@@ -1,5 +1,7 @@
 package org.concordion.ide.eclipse.assist;
 
+import org.concordion.ide.eclipse.validator.CommandName;
+
 
 public class ContextParser {
 	private static final int NOT_FOUND = -1;
@@ -88,7 +90,8 @@ public class ContextParser {
 	private AssistType command(String document, int commandStart, int commandEnd) {
 		if (commandStart != NOT_FOUND && commandEnd != NOT_FOUND) {
 			String cmdStr = document.substring(commandStart, commandEnd);
-			return AssistType.forCommandName(cmdStr);
+			CommandName commandName = CommandName.fromCommandName(cmdStr);
+			return AssistType.forCommandName(commandName);
 		} else {
 			return AssistType.UNKNOWN;
 		}

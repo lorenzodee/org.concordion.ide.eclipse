@@ -18,6 +18,7 @@ public class Activator extends AbstractUIPlugin {
 	private static Activator plugin;
 
 	private static Image proposalImage;
+	private static Image methodProposalImage;
 	
 	/**
 	 * The constructor
@@ -29,7 +30,6 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		getProposalImage(); // preload
 	}
 
 	@Override
@@ -55,11 +55,17 @@ public class Activator extends AbstractUIPlugin {
 		return plugin;
 	}
 	
-	public static Image getProposalImage() {
-		// TODO: Use JDT icons
+	public static Image getConcordionProposalImage() {
 		if (proposalImage == null) {
 			proposalImage = EclipseUtils.createImage("proposal.gif");
 		}
 		return proposalImage;
+	}
+	
+	public static Image getMethodProposalImage() {
+		if (methodProposalImage == null) {
+			methodProposalImage = EclipseUtils.createImage("methodproposal.png");
+		}
+		return methodProposalImage;
 	}
 }

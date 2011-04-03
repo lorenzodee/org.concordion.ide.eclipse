@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.concordion.ide.eclipse.validator.CommandName;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class CommandProposalProvider implements ProposalProvider {
@@ -23,9 +24,10 @@ public class CommandProposalProvider implements ProposalProvider {
 		if (assistContext.hasPrefix()) {
 			replacementLen = assistContext.getPrefix().length();
 		}
-		String[] commands = filter(AssistType.allCommands(), assistContext);
+		String[] commands = filter(CommandName.allCommandNames(), assistContext);
 		int prefixLen = proposalPrefix == null ? 0 : proposalPrefix.length();
-		return ProposalSupport.createProposals(commands, offset, proposalPrefix , "=\"\"", 2 + prefixLen, replacementLen);
+		return ProposalSupport.createProposals(
+				commands, offset, proposalPrefix , "=\"\"", 2 + prefixLen, replacementLen, ProposalIcon.CONCORDION);
 	}
 
 	private static String[] filter(String[] allCommands, AssistContext context) {

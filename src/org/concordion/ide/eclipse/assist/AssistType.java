@@ -1,56 +1,40 @@
 package org.concordion.ide.eclipse.assist;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import org.concordion.ide.eclipse.validator.CommandName;
 
 public enum AssistType {
-	// TODO: Use CommandName enum for command names instead of strings
-	ASSERT_EQUALS("assertEquals"), 
-	ASSERT_TRUE("assertTrue"),
-	ASSERT_FALSE("assertFalse"),
-	RUN("run"),
-	EXECUTE("execute"),
-	SET("set"),
-	VERIFY_ROWS("verifyRows"),
-	ECHO("echo"),
+	ASSERT_EQUALS(CommandName.ASSERT_EQUALS), 
+	ASSERT_TRUE(CommandName.ASSERT_TRUE),
+	ASSERT_FALSE(CommandName.ASSERT_FALSE),
+	RUN(CommandName.RUN),
+	EXECUTE(CommandName.EXECUTE),
+	SET(CommandName.SET),
+	VERIFY_ROWS(CommandName.VERIFY_ROWS),
+	ECHO(CommandName.ECHO),
 	NS_PREFIX(),
 	UNKNOWN(),
 	PARTIAL_NS_PREFIX();
 	
-	private static final String[] ALL_COMMANDS;
-	
-	static {
-		Collection<String> allCmds = new ArrayList<String>();
-		for (AssistType context : values()) {
-			String cmdName = context.commandName;
-			if (cmdName != null) {
-				allCmds.add(cmdName);
-			}
-		}
-		ALL_COMMANDS = allCmds.toArray(new String[allCmds.size()]);
-	}
-	
-	private final String commandName;
+	private final CommandName commandName;
 
 	private AssistType() { 
 		commandName = null;
 	}
 	
-	private AssistType(String commandName) {
+	private AssistType(CommandName commandName) {
 		this.commandName = commandName;
 	}
 	
-	public static AssistType forCommandName(String cmdName) {
+	public static AssistType forCommandName(CommandName cmdName) {
+		if (cmdName == null) {
+			return null;
+		}
+		
 		for (AssistType val : values()) {
-			String commandName = val.commandName;
-			if (commandName != null && commandName.equals(cmdName)) {
+			if (val.commandName == cmdName) {
 				return val;
 			}
 		}
 		return UNKNOWN;
-	}
-	
-	public static String[] allCommands() {
-		return (String[]) ALL_COMMANDS.clone();
 	}
 }

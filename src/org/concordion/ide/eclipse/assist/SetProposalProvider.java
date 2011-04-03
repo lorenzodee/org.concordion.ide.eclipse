@@ -15,7 +15,7 @@ public class SetProposalProvider implements ProposalProvider {
 	
 	private static List<ICompletionProposal> createSetProposal(int offset) {
 		return Collections.<ICompletionProposal>singletonList(
-			createProposal("Variable", "#", offset, 1, 1, NO_REPLACEMENT));
+			createProposal("Variable", "#", offset, 1, 1, NO_REPLACEMENT, ProposalIcon.CONCORDION));
 	}
 
 }

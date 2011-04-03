@@ -53,7 +53,7 @@ public class MethodProposalProvider implements ProposalProvider {
 		String typeName = noExtensionFileName(specFile) + specTypePostfix;
 		String fileName = typeName + ".java";
 		IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
-		IType type = EclipseUtils.getTypeForFile(javaFile, typeName);
+		IType type = EclipseUtils.getTypeForFile(javaFile);
 		return type;
 	}
 
@@ -81,7 +81,8 @@ public class MethodProposalProvider implements ProposalProvider {
 		
 		String params = parameters(method);
 		String proposal = choice + params;
-		return ProposalSupport.createProposal(methodName, proposal, offset, choice.length() + 1, proposal.length(), ProposalSupport.NO_REPLACEMENT);
+		return ProposalSupport.createProposal(
+				methodName, proposal, offset, choice.length() + 1, proposal.length(), ProposalSupport.NO_REPLACEMENT, ProposalIcon.METHOD);
 	}
 
 	private static String parameters(IMethod method) throws JavaModelException {

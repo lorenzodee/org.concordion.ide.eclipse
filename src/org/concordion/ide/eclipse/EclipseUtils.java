@@ -39,16 +39,19 @@ public class EclipseUtils {
 		return ImageDescriptor.createFromURL(imageFileUrl).createImage();
 	}
 	
-	public static IType getTypeForFile(IFile file, String typeName) {
-		if (file == null) return null;
+	public static IType getTypeForFile(IFile file) {
+		if (file == null) {
+			return null;
+		}
 		
 		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(file);
 		if (compilationUnit != null && compilationUnit.exists()) {
-			IType type = compilationUnit.getType(typeName); // TODO: Replace with getPrimaryElement()?
-			if (type != null && !type.exists()) {
-				return null;
+			String typeName = compilationUnit.getElementName().replace(".java", "");
+			IType primary = compilationUnit.getType(typeName);
+			if (primary != null && primary.exists()) {
+				return (IType) primary;
 			} else {
-				return type;
+				return null;
 			}
 		}
 		return null;
