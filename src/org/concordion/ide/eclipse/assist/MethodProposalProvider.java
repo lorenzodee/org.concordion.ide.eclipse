@@ -36,25 +36,12 @@ public class MethodProposalProvider implements ProposalProvider {
 	private List<ICompletionProposal> createMethodProposals(int offset, String prefix) {
 		IJavaProject javaProject = EclipseUtils.getJavaProjectForFile(specFile);
 		if (javaProject != null) {
-			IType type = findSpecType(specFile);
+			IType type = EclipseUtils.findSpecType(specFile);
 			if (type != null) {
 				return createAccessibleMethodProposals(type, offset, prefix);
 			}
 		}
 		return emptyList();
-	}
-
-	private static IType findSpecType(IFile specFile) {
-		IType type = findSpecType(specFile, "Test");
-		return type == null ? findSpecType(specFile, "") : type;
-	}
-
-	private static IType findSpecType(IFile specFile, String specTypePostfix) {
-		String typeName = noExtensionFileName(specFile) + specTypePostfix;
-		String fileName = typeName + ".java";
-		IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
-		IType type = EclipseUtils.getTypeForFile(javaFile);
-		return type;
 	}
 
 	private static List<ICompletionProposal> createAccessibleMethodProposals(IType type, int offset, String prefix) {
@@ -96,7 +83,7 @@ public class MethodProposalProvider implements ProposalProvider {
 		return str.append(")").toString();
 	}
 
-	private static String noExtensionFileName(IFile file) {
+	public static String noExtensionFileName(IFile file) {
 		String filename = file.getName();
 		int dot = filename.lastIndexOf('.');
 		if (dot > 0) {

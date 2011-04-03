@@ -91,7 +91,7 @@ public class CommandAttributeVisitor {
 		CommandName cmd = CommandName.fromCommandName(localName);
 		if (cmd != null) {
 			ProblemReporter problemReporter = problemReporterFactory.createProblemReporter(line, offset, valueLen);
-			fireParseCommand(cmd, value, problemReporter, element);
+			fireParseCommand(cmd, value.trim(), problemReporter, element);
 		} else {
 			ProblemReporter problemReporter = problemReporterFactory.createProblemReporter(line, offset, nameLen);
 			invalidCommandHandler.handleInvalidCommand(localName, value, problemReporter);

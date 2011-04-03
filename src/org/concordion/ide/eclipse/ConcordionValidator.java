@@ -9,6 +9,8 @@ import org.concordion.ide.eclipse.validator.RootElementParser;
 import org.concordion.ide.eclipse.validator.RunCommandValidator;
 import org.concordion.ide.eclipse.validator.SetCommandValidator;
 import org.concordion.ide.eclipse.validator.VerifyRowsCommandValidator;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
@@ -16,7 +18,6 @@ import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.eclipse.wst.validation.internal.provisional.core.IValidationContext;
 import org.eclipse.wst.validation.internal.provisional.core.IValidator;
-import org.eclipse.wst.xml.core.internal.provisional.document.IDOMDocument;
 import org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel;
 import org.w3c.dom.Element;
 
@@ -48,7 +49,7 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 		if (rootElementParser.isConcordionSpec(document)) {
 			IDOMModel domModel = EclipseUtils.domModelForDocument(document);
 			if (domModel != null) {
-				doParseSpec(domModel.getDocument(), reporter, rootElementParser.getNamespacePrefix());
+				doParseSpec(domModel, reporter, rootElementParser.getNamespacePrefix());
 			}
 		}
 	}
@@ -65,8 +66,8 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 		}
 	}
 
-	private void doParseSpec(IDOMDocument domDoc, IReporter reporter, String nsPrefix) {
-		Element root = domDoc.getDocumentElement();
+	private void doParseSpec(IDOMModel domModel, IReporter reporter, String nsPrefix) {
+		Element root = domModel.getDocument().getDocumentElement();
 		CommandAttributeVisitor specParser = new CommandAttributeVisitor(
 			document,
 			nsPrefix, 
@@ -76,12 +77,15 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 		specParser.addCommandParser(CommandName.SET, new SetCommandValidator());
 		specParser.addCommandParser(CommandName.VERIFY_ROWS, new VerifyRowsCommandValidator());
 		
-		specParser.addCommandParser(CommandName.ASSERT_EQUALS, new EvaluationCommandValidator());
-		specParser.addCommandParser(CommandName.ASSERT_FALSE, new EvaluationCommandValidator());
-		specParser.addCommandParser(CommandName.ASSERT_TRUE, new EvaluationCommandValidator());
-		specParser.addCommandParser(CommandName.ECHO, new EvaluationCommandValidator());
-		specParser.addCommandParser(CommandName.EXECUTE, new EvaluationCommandValidator());
-		specParser.addCommandParser(CommandName.PARAMS, new EvaluationCommandValidator());
+		IFile specFile = EclipseUtils.fileForModel(domModel);
+		IType fixtureType = EclipseUtils.findSpecType(specFile);
+		EvaluationCommandValidator evaluationCommandValidator = new EvaluationCommandValidator(fixtureType);
+		specParser.addCommandParser(CommandName.ASSERT_EQUALS, evaluationCommandValidator);
+		specParser.addCommandParser(CommandName.ASSERT_FALSE, evaluationCommandValidator);
+		specParser.addCommandParser(CommandName.ASSERT_TRUE, evaluationCommandValidator);
+		specParser.addCommandParser(CommandName.ECHO, evaluationCommandValidator);
+		specParser.addCommandParser(CommandName.EXECUTE, evaluationCommandValidator);
+		specParser.addCommandParser(CommandName.PARAMS, evaluationCommandValidator);
 		
 		specParser.addCommandParser(CommandName.RUN, new RunCommandValidator());
 		

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
+import org.concordion.ide.eclipse.assist.MethodProposalProvider;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -49,9 +50,7 @@ public class EclipseUtils {
 			String typeName = compilationUnit.getElementName().replace(".java", "");
 			IType primary = compilationUnit.getType(typeName);
 			if (primary != null && primary.exists()) {
-				return (IType) primary;
-			} else {
-				return null;
+				return primary;
 			}
 		}
 		return null;
@@ -85,5 +84,18 @@ public class EclipseUtils {
 		Path path = new Path(model.getBaseLocation());
 		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 		return file.exists() ? file : null;
+	}
+
+	public static IType findSpecType(IFile specFile, String specTypePostfix) {
+		String typeName = MethodProposalProvider.noExtensionFileName(specFile) + specTypePostfix;
+		String fileName = typeName + ".java";
+		IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
+		IType type = getTypeForFile(javaFile);
+		return type;
+	}
+
+	public static IType findSpecType(IFile specFile) {
+		IType type = findSpecType(specFile, "Test");
+		return type == null ? findSpecType(specFile, "") : type;
 	}
 }
