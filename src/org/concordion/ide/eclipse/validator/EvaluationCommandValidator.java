@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.w3c.dom.Element;
 
 public class EvaluationCommandValidator implements CommandValidator {
@@ -46,15 +47,45 @@ public class EvaluationCommandValidator implements CommandValidator {
 		}
 		
 		if (withParamsMatcher.matches()) {
-			// TODO
+			String methodName = withParamsMatcher.group(1);
+			int paramCount = countCommas(expression) + 1;
+			validateMethodWithParamsExists(methodName, paramCount, problemReporter);
 		}
     }
-
+	
 	private void validateMethodExists(String methodName, ProblemReporter problemReporter) {
 		IMethod method = fixture.getMethod(methodName, new String[0]);
 		if (method == null || !method.exists()) {
 			problemReporter.reportError("Method " + methodName + " does not exist in fixture " + fixture.getFullyQualifiedName());
 		}
 	}
-
+	
+	private void validateMethodWithParamsExists(String methodName, int paramCount, ProblemReporter problemReporter) {
+		IMethod[] methods = getFixtureMethods();
+		for (IMethod method : methods) {
+			if (method.exists() && method.getElementName().equals(methodName)) {
+				int actualParamCount;
+				try {
+					actualParamCount = method.getParameterNames().length;
+					if (actualParamCount != paramCount) {
+						problemReporter.reportError("Wrong parameter count for method " + methodName + ", expected " + actualParamCount + " parameters");
+					}
+				} catch (JavaModelException e) {
+					// Ignore, try next method
+				}
+			}
+		}
+	}
+	
+	private IMethod[] getFixtureMethods() {
+		try {
+			return fixture.getMethods();
+		} catch (JavaModelException e) {
+			return new IMethod[0];
+		}
+	}
+	
+	private static int countCommas(String expression) {
+		return expression.replaceAll("[^,]","").length();
+	}
 }
