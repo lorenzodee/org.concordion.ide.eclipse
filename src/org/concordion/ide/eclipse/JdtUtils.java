@@ -23,22 +23,6 @@ public class JdtUtils {
 		return null; // TODO
 	}
 
-	public static IType getTypeForFile(IFile file) {
-		if (file == null) {
-			return null;
-		}
-		
-		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(file);
-		if (compilationUnit != null && compilationUnit.exists()) {
-			String typeName = compilationUnit.getElementName().replace(".java", "");
-			IType primary = compilationUnit.getType(typeName);
-			if (primary != null && primary.exists()) {
-				return primary;
-			}
-		}
-		return null;
-	}
-
 	public static IJavaProject getJavaProjectForFile(IFile file) {
 		if (file != null) {
 			IProject project = file.getProject();
@@ -52,19 +36,6 @@ public class JdtUtils {
 			}
 		}
 		return null;
-	}
-
-	public static IType findSpecType(IFile specFile, String specTypePostfix) {
-		String typeName = MethodProposalProvider.noExtensionFileName(specFile) + specTypePostfix;
-		String fileName = typeName + ".java";
-		IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
-		IType type = getTypeForFile(javaFile);
-		return type;
-	}
-
-	public static IType findSpecType(IFile specFile) {
-		IType type = findSpecType(specFile, "Test");
-		return type == null ? findSpecType(specFile, "") : type;
 	}
 
 	/**
@@ -119,5 +90,34 @@ public class JdtUtils {
 		}
 		
 		return "";
+	}
+
+	public static IType findSpecType(IFile specFile) {
+		IType type = findSpecType(specFile, "Test");
+		return type == null ? findSpecType(specFile, "") : type;
+	}
+
+	private static IType getTypeForFile(IFile file) {
+		if (file == null) {
+			return null;
+		}
+		
+		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(file);
+		if (compilationUnit != null && compilationUnit.exists()) {
+			String typeName = compilationUnit.getElementName().replace(".java", "");
+			IType primary = compilationUnit.getType(typeName);
+			if (primary != null && primary.exists()) {
+				return primary;
+			}
+		}
+		return null;
+	}
+
+	private static IType findSpecType(IFile specFile, String specTypePostfix) {
+		String typeName = MethodProposalProvider.noExtensionFileName(specFile) + specTypePostfix;
+		String fileName = typeName + ".java";
+		IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
+		IType type = getTypeForFile(javaFile);
+		return type;
 	}
 }
