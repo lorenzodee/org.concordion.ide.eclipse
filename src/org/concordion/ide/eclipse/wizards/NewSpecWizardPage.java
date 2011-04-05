@@ -94,10 +94,22 @@ public class NewSpecWizardPage extends WizardPage {
 		initialize();
 		dialogChanged();
 		setControl(container);
-		
-		fileText.setFocus();
 	}
-
+	
+	@Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		// Set the initial field focus
+		if (visible) {
+			getShell().getDisplay().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					fileText.setFocus();
+				}
+			});
+		}
+	}
+	
 	/**
 	 * Tests if the current workbench selection is a suitable container to use.
 	 */
