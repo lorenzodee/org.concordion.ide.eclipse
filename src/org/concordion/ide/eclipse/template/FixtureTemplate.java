@@ -1,6 +1,7 @@
 package org.concordion.ide.eclipse.template;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.concordion.ide.eclipse.EclipseUtils;
 import org.concordion.ide.eclipse.FileUtils;
@@ -21,12 +22,21 @@ public class FixtureTemplate {
 	}
 	
 	public void generateTo(IFile file) {
+		String template = generate();
+		writeToFile(file, template);
+	}
+	
+	public InputStream generateToStream(String charSetName) {
+		return FileUtils.asStream(generate(), charSetName);
+	}
+	
+	private String generate() {
 		loadTemplate();
 		
 		String template = setPackageDecl();
 		template = setClassName(template);
 		template = addMethods(template);
-		writeToFile(file, template);
+		return template;
 	}
 
 	private String setPackageDecl() {

@@ -22,4 +22,5 @@ Bundle-ClassPath: lib/concordion-1.4.1.jar,
  lib/xom-1.2.5.jar,
  .
 Export-Package: org.concordion.ide.eclipse.assist,
- org.concordion.ide.eclipse.validator
+ org.concordion.ide.eclipse.validator,
+ org.concordion.ide.eclipse.wizards

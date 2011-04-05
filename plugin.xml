@@ -30,4 +30,18 @@
 			</contentTypeIdentifier>
 		</validator>
 	</extension>
+ <extension
+       point="org.eclipse.ui.newWizards">
+    <category
+          id="org.concordion.ide.eclipse"
+          name="Concordion">
+    </category>
+    <wizard
+          category="org.concordion.ide.eclipse"
+          class="org.concordion.ide.eclipse.wizards.NewSpecWizard"
+          icon="icons/sample.gif"
+          id="org.concordion.ide.eclipse.wizards.NewSpecWizard"
+          name="Concordion Specification with Fixture">
+    </wizard>
+ </extension>
 </plugin>

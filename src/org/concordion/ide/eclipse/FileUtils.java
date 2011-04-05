@@ -11,6 +11,7 @@ import java.io.Writer;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 public class FileUtils {
@@ -37,14 +38,25 @@ public class FileUtils {
 	}
 
 	public static void writeTo(IFile file, String content) throws CoreException {
+		writeTo(file, content, new NullProgressMonitor());
+	}
+	
+	public static void writeTo(IFile file, String content, IProgressMonitor monitor) throws CoreException {
+		InputStream is = asStream(file.getCharset(), content);
+		file.create(is, false, monitor);
+	}
+
+	public static InputStream asStream(String content, String charsetName) {
+		return new ByteArrayInputStream(toByteArray(content, charsetName));
+	}
+
+	public static byte[] toByteArray(String content, String charsetName) {
 		byte[] bytes;
 		try {
-			bytes = content.getBytes(file.getCharset());
+			bytes = content.getBytes(charsetName);
 		} catch (Exception ex) { // CoreException, UnsupportedEncodingException
 			bytes = content.getBytes();
 		}
-		
-		InputStream is = new ByteArrayInputStream(bytes);
-		file.create(is, false, new NullProgressMonitor()); // TODO: Run async
+		return bytes;
 	}
 }
