@@ -1,11 +1,12 @@
 package org.concordion.ide.eclipse.wizards;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 
 import org.concordion.ide.eclipse.EclipseUtils;
+import org.concordion.ide.eclipse.FileUtils;
 import org.concordion.ide.eclipse.template.FixtureTemplate;
+import org.concordion.ide.eclipse.template.SpecTemplate;
+import org.concordion.ide.eclipse.template.Template;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -13,9 +14,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -108,48 +107,37 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
 		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throwCoreException("Container \"" + containerName + "\" does not exist.");
+			EclipseUtils.throwCoreException("Container \"" + containerName + "\" does not exist.");
 		}
 		IContainer container = (IContainer) resource;
-		final IFile file = createFile(container, specFileName, monitor);
+		final IFile specFile = FileUtils.createNewFile(container, specFileName, specTemplate(), monitor);
+		monitor.worked(1);
+		final IFile fixtureFile = FileUtils.createNewFile(container, testCaseFileName, fixtureTemplate(specFile, testCaseFileName), monitor);
 		monitor.worked(1);
 		
 		monitor.setTaskName("Opening file for editing...");
 		getShell().getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				IWorkbenchPage page =
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				try {
-					IDE.openEditor(page, file, true);
+					IDE.openEditor(page, fixtureFile, true);
+					IDE.openEditor(page, specFile, true);
 				} catch (PartInitException e) {
+					EclipseUtils.logError("Could not open editor", e);
 				}
 			}
 		});
 		monitor.worked(1);
 	}
 	
-	private IFile createFile(IContainer container, String specFileName, IProgressMonitor monitor) throws CoreException {
-		IFile file = container.getFile(new Path(specFileName));
-		try {
-			InputStream stream = new FixtureTemplate(file).generateToStream(file.getCharset(true));
-			if (file.exists()) {
-				file.setContents(stream, true, true, monitor);
-			} else {
-				file.create(stream, true, monitor);
-			}
-			stream.close();
-		} catch (IOException e) {
-			String msg = "Could not create spec file: " + e.getMessage();
-			EclipseUtils.logError(msg, e);
-			throwCoreException(msg);
-		}
-		return file;
+	private static Template specTemplate() {
+		return new SpecTemplate();
 	}
 
-	private void throwCoreException(String message) throws CoreException {
-		IStatus status =
-			new Status(IStatus.ERROR, "org.concordion.ide.eclipse", IStatus.OK, message, null);
-		throw new CoreException(status);
+	private static Template fixtureTemplate(IFile specFile, String testCaseFileName) {
+		String className = testCaseFileName.replace(".java", "");
+		String pkg = EclipseUtils.findPackage(specFile);
+		return new FixtureTemplate(className, pkg);
 	}
 }

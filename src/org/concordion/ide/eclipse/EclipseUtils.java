@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -156,5 +157,10 @@ public class EclipseUtils {
 		}
 		
 		return "";
+	}
+
+	public static void throwCoreException(String message) throws CoreException {
+		IStatus status = new Status(IStatus.ERROR, "org.concordion.ide.eclipse", IStatus.OK, message, null);
+		throw new CoreException(status);
 	}
 }

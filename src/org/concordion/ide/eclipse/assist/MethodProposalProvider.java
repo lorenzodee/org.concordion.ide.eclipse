@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.concordion.ide.eclipse.EclipseUtils;
-import org.concordion.ide.eclipse.template.FixtureTemplate;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaProject;
@@ -22,8 +21,6 @@ public class MethodProposalProvider implements ProposalProvider {
 
 	public MethodProposalProvider(IFile specFile) {
 		this.specFile = specFile;
-		
-		new FixtureTemplate(specFile);
 	}
 
 	public MethodProposalProvider(IFile specFile, String propsalPrefix) {

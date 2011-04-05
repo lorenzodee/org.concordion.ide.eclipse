@@ -9,10 +9,13 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import org.concordion.ide.eclipse.template.Template;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 public class FileUtils {
 	public static String readToString(Class<?> type, String resourceName) throws IOException {
@@ -58,5 +61,20 @@ public class FileUtils {
 			bytes = content.getBytes();
 		}
 		return bytes;
+	}
+
+	public static IFile createNewFile(IContainer container, String newFileName, Template template, IProgressMonitor monitor) throws CoreException {
+		IFile file = container.getFile(new Path(newFileName));
+		if (file.exists()) {
+			EclipseUtils.throwCoreException("File exists: " + newFileName);
+		}
+		try {
+			InputStream stream = template.generateToStream(file.getCharset(true));
+			file.create(stream, true, monitor);
+			stream.close();
+		} catch (IOException e) {
+			EclipseUtils.throwCoreException("Could not create spec file: " + e.getMessage());
+		}
+		return file;
 	}
 }

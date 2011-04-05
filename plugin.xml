@@ -39,7 +39,7 @@
     <wizard
           category="org.concordion.ide.eclipse"
           class="org.concordion.ide.eclipse.wizards.NewSpecWizard"
-          icon="icons/sample.gif"
+          icon="icons/proposal.gif"
           id="org.concordion.ide.eclipse.wizards.NewSpecWizard"
           name="Concordion Specification with Fixture">
     </wizard>
