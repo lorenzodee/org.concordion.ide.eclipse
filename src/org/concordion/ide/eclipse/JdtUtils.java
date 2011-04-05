@@ -1,13 +1,11 @@
 package org.concordion.ide.eclipse;
 
-import org.concordion.ide.eclipse.assist.MethodProposalProvider;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
@@ -92,32 +90,32 @@ public class JdtUtils {
 		return "";
 	}
 
-	public static IType findSpecType(IFile specFile) {
-		IType type = findSpecType(specFile, "Test");
-		return type == null ? findSpecType(specFile, "") : type;
-	}
-
-	private static IType getTypeForFile(IFile file) {
-		if (file == null) {
+	/**
+	 * Finds the type corresponding to the given Concordion Specification.
+	 * @param specFile
+	 * @return The type if found, or <code>null</code> otherwise
+	 */
+	public static IType findFixtureForSpec(IFile specFile) {
+		IJavaProject javaProject = getJavaProjectForFile(specFile);
+		if (javaProject == null) {
 			return null;
 		}
 		
-		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(file);
-		if (compilationUnit != null && compilationUnit.exists()) {
-			String typeName = compilationUnit.getElementName().replace(".java", "");
-			IType primary = compilationUnit.getType(typeName);
-			if (primary != null && primary.exists()) {
-				return primary;
-			}
+		String pkg = getPackageForFile(specFile);
+		String typeName = FileUtils.noExtensionFileName(specFile);
+		IType fixture = findTypeInProject(pkg, typeName + "Test", javaProject);
+		if (fixture == null)  {
+			fixture = findTypeInProject(pkg, typeName, javaProject);
 		}
-		return null;
+		
+		return fixture;
 	}
-
-	private static IType findSpecType(IFile specFile, String specTypePostfix) {
-		String typeName = MethodProposalProvider.noExtensionFileName(specFile) + specTypePostfix;
-		String fileName = typeName + ".java";
-		IFile javaFile = (IFile) specFile.getParent().findMember(fileName);
-		IType type = getTypeForFile(javaFile);
-		return type;
-	}
+	
+	private static IType findTypeInProject(String pkg, String fqn, IJavaProject javaProject) {
+		try {
+			return javaProject.findType(pkg, fqn);
+		} catch (JavaModelException e) {
+			return null;
+		}
+	}	
 }

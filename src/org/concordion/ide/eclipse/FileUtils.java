@@ -77,4 +77,13 @@ public class FileUtils {
 		}
 		return file;
 	}
+
+	public static String noExtensionFileName(IFile file) {
+		String filename = file.getName();
+		int dot = filename.lastIndexOf('.');
+		if (dot > 0) {
+			return filename.substring(0, dot);
+		}
+		return null;
+	}
 }

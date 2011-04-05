@@ -36,7 +36,7 @@ public class MethodProposalProvider implements ProposalProvider {
 	private List<ICompletionProposal> createMethodProposals(int offset, String prefix) {
 		IJavaProject javaProject = JdtUtils.getJavaProjectForFile(specFile);
 		if (javaProject != null) {
-			IType type = JdtUtils.findSpecType(specFile);
+			IType type = JdtUtils.findFixtureForSpec(specFile);
 			if (type != null) {
 				return createAccessibleMethodProposals(type, offset, prefix);
 			}
@@ -81,15 +81,6 @@ public class MethodProposalProvider implements ProposalProvider {
 			str.append('#').append(param);
 		}
 		return str.append(")").toString();
-	}
-
-	public static String noExtensionFileName(IFile file) {
-		String filename = file.getName();
-		int dot = filename.lastIndexOf('.');
-		if (dot > 0) {
-			return filename.substring(0, dot);
-		}
-		return null;
 	}
 
 }
