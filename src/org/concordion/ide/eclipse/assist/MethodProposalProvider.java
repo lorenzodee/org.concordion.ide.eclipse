@@ -5,7 +5,7 @@ import static java.util.Collections.emptyList;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.concordion.ide.eclipse.EclipseUtils;
+import org.concordion.ide.eclipse.JdtUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaProject;
@@ -34,9 +34,9 @@ public class MethodProposalProvider implements ProposalProvider {
 	}
 	
 	private List<ICompletionProposal> createMethodProposals(int offset, String prefix) {
-		IJavaProject javaProject = EclipseUtils.getJavaProjectForFile(specFile);
+		IJavaProject javaProject = JdtUtils.getJavaProjectForFile(specFile);
 		if (javaProject != null) {
-			IType type = EclipseUtils.findSpecType(specFile);
+			IType type = JdtUtils.findSpecType(specFile);
 			if (type != null) {
 				return createAccessibleMethodProposals(type, offset, prefix);
 			}

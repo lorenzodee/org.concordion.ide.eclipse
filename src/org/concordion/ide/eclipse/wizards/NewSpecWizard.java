@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.concordion.ide.eclipse.EclipseUtils;
 import org.concordion.ide.eclipse.FileUtils;
+import org.concordion.ide.eclipse.JdtUtils;
 import org.concordion.ide.eclipse.template.FixtureTemplate;
 import org.concordion.ide.eclipse.template.SpecTemplate;
 import org.concordion.ide.eclipse.template.Template;
@@ -137,7 +138,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 
 	private static Template fixtureTemplate(IFile specFile, String testCaseFileName) {
 		String className = testCaseFileName.replace(".java", "");
-		String pkg = EclipseUtils.findPackage(specFile);
+		String pkg = JdtUtils.getPackageForFile(specFile);
 		return new FixtureTemplate(className, pkg);
 	}
 }
