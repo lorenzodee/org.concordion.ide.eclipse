@@ -1,8 +1,12 @@
 package org.concordion.ide.eclipse.validator;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.concordion.ide.eclipse.EclipseUtils;
+import org.concordion.ide.eclipse.JdtUtils;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -21,6 +25,7 @@ public class EvaluationCommandValidator implements CommandValidator {
     private static final Pattern METHOD_WITH_PARAMS_PATTERN = Pattern.compile(METHOD_CALL_PARAMS);
 
 	private IType fixture;
+	private Map<String, IMethod> methodMap;
 
 	public EvaluationCommandValidator(IType fixture) {
 		this.fixture = fixture;
@@ -44,44 +49,52 @@ public class EvaluationCommandValidator implements CommandValidator {
 		if (noParamsMatcher.matches()) {
 			String method = noParamsMatcher.group(1);
 			validateMethodExists(method, problemReporter);
+			validateMethodParamCountMatches(method, 0, problemReporter);
 		}
 		
 		if (withParamsMatcher.matches()) {
 			String methodName = withParamsMatcher.group(1);
 			int paramCount = countCommas(expression) + 1;
-			validateMethodWithParamsExists(methodName, paramCount, problemReporter);
+			validateMethodExists(methodName, problemReporter);
+			validateMethodParamCountMatches(methodName, paramCount, problemReporter);
 		}
     }
 	
 	private void validateMethodExists(String methodName, ProblemReporter problemReporter) {
-		IMethod method = fixture.getMethod(methodName, new String[0]);
+		Map<String, IMethod> methods = loadMethods();
+		
+		IMethod method = methods.get(methodName);
 		if (method == null || !method.exists()) {
 			problemReporter.reportError("Method " + methodName + " does not exist in fixture " + fixture.getFullyQualifiedName());
 		}
 	}
 	
-	private void validateMethodWithParamsExists(String methodName, int paramCount, ProblemReporter problemReporter) {
-		IMethod[] methods = getFixtureMethods();
-		for (IMethod method : methods) {
-			if (method.exists() && method.getElementName().equals(methodName)) {
-				int actualParamCount;
-				try {
-					actualParamCount = method.getParameterNames().length;
-					if (actualParamCount != paramCount) {
-						problemReporter.reportError("Wrong parameter count for method " + methodName + ", expected " + actualParamCount + " parameters");
-					}
-				} catch (JavaModelException e) {
-					// Ignore, try next method
-				}
+	private Map<String, IMethod> loadMethods() {
+		if (methodMap == null) {
+			try {
+				methodMap = JdtUtils.getAccessibleMethods(fixture);
+			} catch (JavaModelException e) {
+				EclipseUtils.logError("Unable to load methods for fixture", e);
+				return Collections.emptyMap();
 			}
 		}
+		return methodMap;
 	}
-	
-	private IMethod[] getFixtureMethods() {
-		try {
-			return fixture.getMethods();
-		} catch (JavaModelException e) {
-			return new IMethod[0];
+
+	private void validateMethodParamCountMatches(String methodName, int paramCount, ProblemReporter problemReporter) {
+		Map<String, IMethod> methods = loadMethods();
+		
+		IMethod method = methods.get(methodName);
+		if (method != null) {
+			int actualParamCount;
+			try {
+				actualParamCount = method.getParameterNames().length;
+				if (actualParamCount != paramCount) {
+					problemReporter.reportError("Wrong parameter count for method " + methodName + ", expected " + actualParamCount + " parameters");
+				}
+			} catch (JavaModelException e) {
+				// Ignore, try next method
+			}
 		}
 	}
 	

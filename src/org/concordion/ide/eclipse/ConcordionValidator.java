@@ -79,7 +79,10 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 		
 		IFile specFile = EclipseUtils.fileForModel(domModel);
 		IType fixtureType = JdtUtils.findFixtureForSpec(specFile);
+		
+		// Create evaluation command validator once only, it will cache fixture type/method information
 		EvaluationCommandValidator evaluationCommandValidator = new EvaluationCommandValidator(fixtureType);
+		
 		specParser.addCommandParser(CommandName.ASSERT_EQUALS, evaluationCommandValidator);
 		specParser.addCommandParser(CommandName.ASSERT_FALSE, evaluationCommandValidator);
 		specParser.addCommandParser(CommandName.ASSERT_TRUE, evaluationCommandValidator);
