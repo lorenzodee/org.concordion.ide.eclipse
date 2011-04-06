@@ -1,14 +1,21 @@
 package org.concordion.ide.eclipse;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -111,6 +118,38 @@ public class JdtUtils {
 		return fixture;
 	}
 	
+	public static Map<String, IMethod> getAccessibleMethods(IType type) throws JavaModelException {
+		Map<String, IMethod> methods = new HashMap<String, IMethod>();
+		
+		addAccessibleMethods(type, type.getPackageFragment().getElementName(), methods);
+		
+		return methods;
+	}
+	
+	private static void addAccessibleMethods(IType type, String containingPkg, Map<String, IMethod> methods) throws JavaModelException {
+		for (IMethod method : type.getMethods()) {
+			if (!method.exists() || method.isConstructor()) {
+				continue;
+			}
+			
+			int flags = method.getFlags();
+			if (Flags.isPublic(flags) || Flags.isProtected(flags) || isPackageAccessible(type, containingPkg, flags)) {
+				methods.put(method.getElementName(), method);
+			}
+		}
+
+		// Recursively add accessible methods from supertype
+		ITypeHierarchy superTypeHierarchy = type.newSupertypeHierarchy(new NullProgressMonitor());
+		IType superType = superTypeHierarchy.getSuperclass(type);
+		if (superType != null && superType.exists() && !Object.class.getName().equals(superType.getFullyQualifiedName())) {
+			addAccessibleMethods(superType, containingPkg, methods);
+		}
+	}
+
+	private static boolean isPackageAccessible(IType type, String containingPkg, int flags) {
+		return containingPkg.equals(type.getPackageFragment().getElementName()) && Flags.isPackageDefault(flags);
+	}
+
 	private static IType findTypeInProject(String pkg, String fqn, IJavaProject javaProject) {
 		try {
 			return javaProject.findType(pkg, fqn);

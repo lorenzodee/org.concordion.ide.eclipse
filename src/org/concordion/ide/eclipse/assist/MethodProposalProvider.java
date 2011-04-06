@@ -3,18 +3,16 @@ package org.concordion.ide.eclipse.assist;
 import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.concordion.ide.eclipse.JdtUtils;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -61,30 +59,14 @@ public class MethodProposalProvider implements ProposalProvider {
 	}
 
 	private static void addMethodProposals(IType type, String containingPkg, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
-		for (IMethod method : type.getMethods()) {
-			if (!method.exists() || method.isConstructor()) {
-				continue;
-			}
-			
-			int flags = method.getFlags();
-			if (Flags.isPublic(flags) || Flags.isProtected(flags) || isPackageAccessible(type, containingPkg, flags)) {
-				createMethodProposal(method, containingPkg, offset, prefix, proposals, addedMethods);
-			}
-		}
+		Collection<IMethod> methods = JdtUtils.getAccessibleMethods(type).values();
 
-		// Recursively add accessible methods from supertype
-		ITypeHierarchy superTypeHierarchy = type.newSupertypeHierarchy(new NullProgressMonitor());
-		IType superType = superTypeHierarchy.getSuperclass(type);
-		if (superType != null && superType.exists() && !Object.class.getName().equals(superType.getFullyQualifiedName())) {
-			addMethodProposals(superType, containingPkg, offset, prefix, proposals, addedMethods);
+		for (IMethod method : methods) {
+			createMethodProposal(method, offset, prefix, proposals, addedMethods);
 		}
 	}
 
-	private static boolean isPackageAccessible(IType type, String containingPkg, int flags) {
-		return containingPkg.equals(type.getPackageFragment().getElementName()) && Flags.isPackageDefault(flags);
-	}
-
-	private static void createMethodProposal(IMethod method, String containingPkg, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
+	private static void createMethodProposal(IMethod method, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
 		String methodName = method.getElementName();
 		String choice = methodName;
 		if (prefix != null) {
