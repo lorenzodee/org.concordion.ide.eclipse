@@ -25,9 +25,17 @@ public enum AssistType {
 		this.commandName = commandName;
 	}
 	
+	public boolean isCommandAssist() {
+		return commandName != null;
+	}
+	
+	/**
+	 * @param cmdName Concordion command
+	 * @return {@link AssistType} for this command, or <code>null</code> if not available 
+	 */
 	public static AssistType forCommandName(CommandName cmdName) {
 		if (cmdName == null) {
-			return null;
+			return AssistType.UNKNOWN;
 		}
 		
 		for (AssistType val : values()) {

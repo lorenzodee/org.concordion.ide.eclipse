@@ -15,19 +15,18 @@ public class ContextParser {
 		// Is cursor after double quote? -> check if in value for a concordion attribute
 		int beforeCursor = offset - 1;
 		if (isDoublequote(document, beforeCursor)) {
-			int commandEnd = beforeEqualSign(document, offset - 2);
-			int commandStart = afterColon(document, commandEnd - 1);
-			AssistType assistType = command(document, commandStart, commandEnd);
+			AssistType assistType = parseCommand(document, offset);
 			return AssistContext.forType(assistType); // TODO: Implement prefix chars for method proposals
 		} else if (isColon(document, beforeCursor)) {
 			// Cursor is after colon -> check if after concordion namespace prefix
 			return nsPrefix(document, concordionNamespacePrefix, beforeCursor);
 		} else if (isLetter(document, beforeCursor)) {
 			// Cursor is after letter - check if partial concordion command with namespace prefix
-			int beforeColon = consumeLetters(document, beforeCursor);
-			AssistContext command = inCommand(document, beforeColon, beforeCursor, concordionNamespacePrefix);
+			int beforeIdentifiers = consumeIdentifiers(document, beforeCursor);
+			AssistContext command = inCommand(document, beforeIdentifiers, beforeCursor, concordionNamespacePrefix);
 			if (command.getType() == AssistType.UNKNOWN) {
-				return inPrefix(document, beforeColon, beforeCursor, concordionNamespacePrefix);
+				// Not a partial command - check if partial method name or partial NS prefix
+				return inPrefix(document, beforeIdentifiers, beforeCursor, concordionNamespacePrefix);
 			} else {
 				return command;
 			}
@@ -36,17 +35,57 @@ public class ContextParser {
 		return AssistContext.unknown();
 	}
 
-	private AssistContext inPrefix(String document, int beforeWhitespace, int beforeCursor, String nsPrefix) {
-		if (isWhitespace(beforeWhitespace, document)) {
-			String letters = document.substring(beforeWhitespace + 1, beforeCursor + 1);
+	private AssistType parseCommand(String document, int offset) {
+		int commandEnd = beforeEqualSign(document, offset - 2);
+		return parseCommandEndingAt(document, commandEnd);
+	}
+
+	private AssistType parseCommandEndingAt(String document, int commandEnd) {
+		int commandStart = afterColon(document, commandEnd - 1);
+		AssistType assistType = command(document, commandStart, commandEnd);
+		return assistType;
+	}
+
+	private AssistContext inPrefix(String document, int beforeIdentifiers, int beforeCursor, String nsPrefix) {
+		if (isWhitespace(beforeIdentifiers, document)) {
+			String letters = document.substring(beforeIdentifiers + 1, beforeCursor + 1);
 			if (letters.length() <= nsPrefix.length()) {
 				String nsPrefLetters = nsPrefix.substring(0, letters.length());
 				if (nsPrefLetters.equals(letters)) {
 					return AssistContext.partialNsPrefix(letters);
 				}
 			}
+		} else if (isDoublequote(beforeIdentifiers, document)) {
+			String partialMethodName = document.substring(beforeIdentifiers + 1, beforeCursor + 1);
+			int beforeEq = consumeEqualsSign(document, beforeIdentifiers - 1);
+			AssistType assistType = parseCommandEndingAt(document, beforeEq + 1);
+			if (assistType != AssistType.UNKNOWN && assistType.isCommandAssist()) {
+				return AssistContext.partialMethod(assistType, partialMethodName);
+			}
 		}
+		
 		return AssistContext.unknown();
+	}
+
+	private int consumeEqualsSign(String document, int pos) {
+		if (pos < 0) {
+			return NOT_FOUND;
+		}
+		
+		while (pos >= 0) {
+			char c = document.charAt(pos);
+			if (Character.isWhitespace(c) || c == '=') {
+				pos--;
+			} else {
+				break;
+			}
+		}
+		
+		return pos;
+	}
+
+	private boolean isDoublequote(int beforeWhitespace, String document) {
+		return beforeWhitespace >= 0 && document.charAt(beforeWhitespace) == '"';
 	}
 	
 	private boolean isWhitespace(int beforeColon, String document) {
@@ -54,7 +93,7 @@ public class ContextParser {
 	}
 
 	private AssistContext nsPrefix(String document, String concordionNamespacePrefix, int beforeCursor) {
-		int beforeWhitespace = consumeLetters(document, beforeCursor - 1);
+		int beforeWhitespace = consumeIdentifiers(document, beforeCursor - 1);
 		return AssistContext.forType(nsPrefixType(document, beforeWhitespace + 1, beforeCursor, concordionNamespacePrefix));
 	}
 	
@@ -98,7 +137,11 @@ public class ContextParser {
 	}
 	
 	private int afterColon(String document, int pos) {
-		pos = consumeLetters(document, pos);
+		if (pos < 0) {
+			return NOT_FOUND;
+		}
+		
+		pos = consumeIdentifiers(document, pos);
 		
 		if (pos >= 0 && isColon(document, pos)) {
 			return pos + 1;
@@ -107,9 +150,14 @@ public class ContextParser {
 		}
 	}
 	
-	private int consumeLetters(String document, int pos) {
-		while (pos >= 0 && Character.isLetter(document.charAt(pos))) {
-			pos--;
+	private int consumeIdentifiers(String document, int pos) {
+		while (pos >= 0) {
+			char c = document.charAt(pos);
+			if ((Character.isLetter(c) || Character.isDigit(c) || c == '_')) {
+				pos--;				
+			} else {
+				break;
+			}
 		}
 		return pos;
 	}

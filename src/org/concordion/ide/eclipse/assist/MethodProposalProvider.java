@@ -101,8 +101,10 @@ public class MethodProposalProvider implements ProposalProvider {
 		
 		addedMethods.add(proposal);
 		
+		int replaceLen = partialMethodName == null ? 0 : partialMethodName.length();
+		
 		proposals.add(ProposalSupport.createProposal(
-				displayProposal, proposal, offset, choice.length() + 1, proposal.length(), ProposalSupport.NO_REPLACEMENT, ProposalIcon.METHOD));
+				displayProposal, proposal, offset - replaceLen, choice.length() + 1, proposal.length(), replaceLen, ProposalIcon.METHOD));
 	}
 
 	private static void parameters(IMethod method, StringBuilder proposalStr, StringBuilder displayStr) throws JavaModelException {

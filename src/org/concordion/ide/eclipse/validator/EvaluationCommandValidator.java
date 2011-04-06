@@ -39,6 +39,8 @@ public class EvaluationCommandValidator implements CommandValidator {
 		// Check for valid method invocations on fixture
 		if (fixture != null) {
 			validateMethodInvocations(expression, problemReporter);
+			
+			// TODO: Check for valid property references
 		}
 	}
 
