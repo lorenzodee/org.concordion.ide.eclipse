@@ -11,7 +11,7 @@ public enum AssistType {
 	SET(CommandName.SET),
 	VERIFY_ROWS(CommandName.VERIFY_ROWS),
 	ECHO(CommandName.ECHO),
-	NS_PREFIX(),
+	PARTIAL_COMMAND(),
 	UNKNOWN(),
 	PARTIAL_NS_PREFIX();
 	

@@ -30,8 +30,12 @@ public class AssistContext {
 		return new AssistContext(type, null);
 	}
 
-	public static AssistContext withPrefix(String prefix) {
-		return new AssistContext(AssistType.NS_PREFIX, prefix);
+	public static AssistContext partialCommand(String prefix) {
+		return new AssistContext(AssistType.PARTIAL_COMMAND, prefix);
+	}
+	
+	public static AssistContext partialMethod(AssistType type, String partialMethodName) {
+		return new AssistContext(type, partialMethodName);
 	}
 	
 	public static AssistContext partialNsPrefix(String prefix) {

@@ -19,16 +19,26 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class MethodProposalProvider implements ProposalProvider {
 
-	private IFile specFile;
-	private String propsalPrefix = null;
+	private final IFile specFile;
+	private final String propsalPrefix;
+	private final String partialMethodName;
 
-	public MethodProposalProvider(IFile specFile) {
-		this.specFile = specFile;
+	public static MethodProposalProvider forSpecWithPartialMethodName(IFile specFile, String partialMethodName) {
+		return new MethodProposalProvider(specFile, null, partialMethodName);
+	}
+	
+	public static MethodProposalProvider forSpecWithPrefix(IFile specFile, String proposalPrefix) {
+		return new MethodProposalProvider(specFile, proposalPrefix, null);
+	}
+	
+	private MethodProposalProvider(IFile specFile) {
+		this(specFile, null,  null);
 	}
 
-	public MethodProposalProvider(IFile specFile, String propsalPrefix) {
+	private MethodProposalProvider(IFile specFile, String proposalPrefix, String partialMethodName) {
 		this.specFile = specFile;
-		this.propsalPrefix = propsalPrefix;
+		this.propsalPrefix = proposalPrefix;
+		this.partialMethodName = partialMethodName;
 	}
 
 	@Override
@@ -47,7 +57,7 @@ public class MethodProposalProvider implements ProposalProvider {
 		return emptyList();
 	}
 
-	private static List<ICompletionProposal> createAccessibleMethodProposals(IType type, int offset, String prefix) {
+	private List<ICompletionProposal> createAccessibleMethodProposals(IType type, int offset, String prefix) {
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		try {
 			Set<String> addedMethods = new HashSet<String>();
@@ -58,7 +68,7 @@ public class MethodProposalProvider implements ProposalProvider {
 		}
 	}
 
-	private static void addMethodProposals(IType type, String containingPkg, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
+	private void addMethodProposals(IType type, String containingPkg, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
 		Collection<IMethod> methods = JdtUtils.getAccessibleMethods(type).values();
 
 		for (IMethod method : methods) {
@@ -66,8 +76,12 @@ public class MethodProposalProvider implements ProposalProvider {
 		}
 	}
 
-	private static void createMethodProposal(IMethod method, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
+	private void createMethodProposal(IMethod method, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
 		String methodName = method.getElementName();
+		if (partialMethodName != null && !methodName.startsWith(partialMethodName)) {
+			return;
+		}
+		
 		String choice = methodName;
 		if (prefix != null) {
 			choice = prefix + choice;

@@ -61,9 +61,9 @@ public class ContextParser {
 	private AssistContext inCommand(String document, int beforeColon, int beforeCursor, String concordionNamespacePrefix) {
 		if (isColon(document, beforeColon)) {
 			AssistContext prefix = nsPrefix(document, concordionNamespacePrefix, beforeColon);
-			if (prefix.getType() == AssistType.NS_PREFIX) {
+			if (prefix.getType() == AssistType.PARTIAL_COMMAND) {
 				String commandPrefix = document.substring(beforeColon + 1, beforeCursor + 1);
-				return AssistContext.withPrefix(commandPrefix);
+				return AssistContext.partialCommand(commandPrefix);
 			}
 		}
 		return AssistContext.unknown();
@@ -80,7 +80,7 @@ public class ContextParser {
 		if (afterWhitespace != NOT_FOUND && beforeOffset != NOT_FOUND) {
 			String nsPfx = document.substring(afterWhitespace, beforeOffset);
 			if (nsPfx.equals(concordionNamespacePrefix)) {
-				return AssistType.NS_PREFIX;
+				return AssistType.PARTIAL_COMMAND;
 			}
 		}
 		

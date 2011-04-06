@@ -12,7 +12,7 @@ public class PartialNsPrefixProposalProvider extends CommandProposalProvider {
 
 	@Override
 	public List<ICompletionProposal> provideProposal(AssistContext assistContext, String namespacePrefix, int offset) {
-		return super.provideProposal(AssistContext.forType(AssistType.NS_PREFIX), namespacePrefix, offset);
+		return super.provideProposal(AssistContext.forType(AssistType.PARTIAL_COMMAND), namespacePrefix, offset);
 		//return createPartialNsPrefixProposal(offset, assistContext.getPrefix(), namespacePrefix);
 	}
 /*

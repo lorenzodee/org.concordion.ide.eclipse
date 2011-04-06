@@ -26,7 +26,7 @@ public class Assist implements ProposalProvider {
 		ProposalProvider delegate = null;
 		
 		switch (assistContext.getType()) {
-		case NS_PREFIX:
+		case PARTIAL_COMMAND:
 			return new CommandProposalProvider();
 		case ASSERT_EQUALS:
 		case ASSERT_TRUE:
@@ -34,9 +34,9 @@ public class Assist implements ProposalProvider {
 		case EXECUTE:
 		case RUN:
 		case ECHO:
-			return new MethodProposalProvider(specFile);
+			return MethodProposalProvider.forSpecWithPartialMethodName(specFile, assistContext.getPrefix());
 		case VERIFY_ROWS:
-			return new MethodProposalProvider(specFile, "#var : ");
+			return MethodProposalProvider.forSpecWithPrefix(specFile, "#var : ");
 		case SET:
 			return new SetProposalProvider();
 		case PARTIAL_NS_PREFIX:
