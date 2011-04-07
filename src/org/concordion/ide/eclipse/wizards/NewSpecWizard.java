@@ -6,6 +6,7 @@ import org.concordion.ide.eclipse.EclipseUtils;
 import org.concordion.ide.eclipse.FileUtils;
 import org.concordion.ide.eclipse.JdtUtils;
 import org.concordion.ide.eclipse.template.FixtureTemplate;
+import org.concordion.ide.eclipse.template.FixtureTemplate.Language;
 import org.concordion.ide.eclipse.template.SpecTemplate;
 import org.concordion.ide.eclipse.template.Template;
 import org.eclipse.core.resources.IContainer;
@@ -63,11 +64,14 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	public boolean performFinish() {
 		final String containerName = page.getContainerName();
 		final String specFileName = page.getFileName();
+		final Language language = page.getLanguage();
+		
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					doFinish(containerName, specFileName, testCaseName(specFileName, testCaseSuffix), monitor);
+					String testCaseName = testCaseName(specFileName, testCaseSuffix, language);
+					doFinish(containerName, specFileName, testCaseName, language, monitor);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -87,13 +91,13 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		return true;
 	}
 
-	protected static String testCaseName(String specFileName, String testCaseSuffix) {
+	protected static String testCaseName(String specFileName, String testCaseSuffix, Language lang) {
 		int dotPos = specFileName.lastIndexOf('.');
 		if (dotPos == -1) {
 			dotPos = specFileName.length();
 		}
 		String base = specFileName.substring(0, dotPos);
-		return base + testCaseSuffix  + ".java";
+		return base + testCaseSuffix  + lang.getFileSuffix();
 	}
 	
 	/**
@@ -101,7 +105,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	 * file if missing or just replace its contents, and open
 	 * the editor on the newly created file.
 	 */
-	private void doFinish(String containerName, String specFileName, String testCaseFileName, IProgressMonitor monitor) throws CoreException {
+	private void doFinish(String containerName, String specFileName, String testCaseFileName, Language lang,  IProgressMonitor monitor) throws CoreException {
 		
 		// create the spec html file
 		monitor.beginTask("Creating " + specFileName, 3);
@@ -113,32 +117,45 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		IContainer container = (IContainer) resource;
 		final IFile specFile = FileUtils.createNewFile(container, specFileName, specTemplate(), monitor);
 		monitor.worked(1);
-		final IFile fixtureFile = FileUtils.createNewFile(container, testCaseFileName, fixtureTemplate(specFile, testCaseFileName), monitor);
+		Template template = fixtureTemplate(specFile, testCaseFileName, lang);
+		final IFile fixtureFile = FileUtils.createNewFile(container, testCaseFileName, template, monitor);
 		monitor.worked(1);
 		
 		monitor.setTaskName("Opening file for editing...");
 		getShell().getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				try {
-					IDE.openEditor(page, fixtureFile, true);
-					IDE.openEditor(page, specFile, true);
-				} catch (PartInitException e) {
-					EclipseUtils.logError("Could not open editor", e);
-				}
+				openFile(fixtureFile);
+				openFile(specFile);
 			}
 		});
 		monitor.worked(1);
 	}
 	
+	/**
+	 * Opens a file in the associated editor. Must be run in the UI thread
+	 * @param file The file to open
+	 */
+	private static void openFile(final IFile File) {
+		if (File == null || !File.exists()) {
+			return;
+		}
+		
+		try {
+			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			IDE.openEditor(page, File, true);
+		} catch (PartInitException e) {
+			EclipseUtils.logError("Could not open editor", e);
+		}
+	}
+
 	private static Template specTemplate() {
 		return new SpecTemplate();
 	}
 
-	private static Template fixtureTemplate(IFile specFile, String testCaseFileName) {
-		String className = testCaseFileName.replace(".java", "");
+	private static Template fixtureTemplate(IFile specFile, String testCaseFileName, Language lang) {
+		String className = FileUtils.noExtensionFileName(testCaseFileName);
 		String pkg = JdtUtils.getPackageForFile(specFile);
-		return new FixtureTemplate(className, pkg);
+		return new FixtureTemplate(className, pkg, lang);
 	}
 }

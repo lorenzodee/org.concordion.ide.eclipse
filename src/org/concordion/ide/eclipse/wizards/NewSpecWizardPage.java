@@ -1,5 +1,6 @@
 package org.concordion.ide.eclipse.wizards;
 
+import org.concordion.ide.eclipse.template.FixtureTemplate.Language;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -31,9 +32,8 @@ import org.eclipse.ui.dialogs.ContainerSelectionDialog;
  */
 public class NewSpecWizardPage extends WizardPage {
 	private Text containerText;
-
 	private Text fileText;
-
+	private Button groovyRadio;
 	private ISelection selection;
 
 	/**
@@ -91,6 +91,22 @@ public class NewSpecWizardPage extends WizardPage {
 				dialogChanged();
 			}
 		});
+		
+		new Label(container, 0);
+		
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 3;
+		Button javaRadio = new Button(container, SWT.RADIO);
+		javaRadio.setText("Java Fixture");
+		javaRadio.setSelection(true);
+		javaRadio.setLayoutData(gd);
+		
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 3;
+		groovyRadio = new Button(container, SWT.RADIO);
+		groovyRadio.setText("Groovy Fixture");
+		groovyRadio.setLayoutData(gd);
+		
 		initialize();
 		dialogChanged();
 		setControl(container);
@@ -209,5 +225,9 @@ public class NewSpecWizardPage extends WizardPage {
 
 	public String getFileName() {
 		return fileText.getText();
+	}
+	
+	public Language getLanguage() {
+		return groovyRadio.getSelection() ? Language.GROOVY : Language.JAVA;
 	}
 }

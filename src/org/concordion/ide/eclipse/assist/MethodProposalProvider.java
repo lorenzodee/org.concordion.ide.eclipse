@@ -69,7 +69,7 @@ public class MethodProposalProvider implements ProposalProvider {
 	}
 
 	private void addMethodProposals(IType type, String containingPkg, int offset, String prefix, List<ICompletionProposal> proposals, Set<String> addedMethods) throws JavaModelException {
-		Collection<IMethod> methods = JdtUtils.getAccessibleMethods(type).values();
+		Collection<IMethod> methods = JdtUtils.getAccessibleNonTestMethods(type).values();
 
 		for (IMethod method : methods) {
 			createMethodProposal(method, offset, prefix, proposals, addedMethods);

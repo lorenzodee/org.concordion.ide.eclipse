@@ -50,7 +50,7 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 	
 	@Override
 	public void cleanup(IReporter reporter) {
-		this.document = null;
+		// No cleanup necessary for this validator
 	}
 	
 	@Override

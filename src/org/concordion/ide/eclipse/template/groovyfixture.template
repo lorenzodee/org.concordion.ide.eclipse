@@ -1,0 +1,5 @@
+import org.concordion.integration.junit3.ConcordionTestCase;
+
+class $className extends ConcordionTestCase {
+	$methods
+}

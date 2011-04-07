@@ -82,11 +82,14 @@ public class FileUtils {
 	}
 
 	public static String noExtensionFileName(IFile file) {
-		String filename = file.getName();
+		return noExtensionFileName(file.getName());
+	}
+	
+	public static String noExtensionFileName(String filename) {
 		int dot = filename.lastIndexOf('.');
 		if (dot > 0) {
 			return filename.substring(0, dot);
 		}
-		return null;
+		return filename;
 	}
 }

@@ -88,9 +88,10 @@ public class JdtUtils {
 
 	/** 
 	 * Returns methods accessible in the given type (public, protected, package-local
-	 * in same package. 
+	 * in same package. Excludes methods from Test case base classes <code>org.junit.TestCase</code>
+	 * and <code>org.concordion.integration.junit3.ConcordionTestCase</code>.
 	 */
-	public static Map<String, IMethod> getAccessibleMethods(IType type) throws JavaModelException {
+	public static Map<String, IMethod> getAccessibleNonTestMethods(IType type) throws JavaModelException {
 		Map<String, IMethod> methods = new HashMap<String, IMethod>();
 		addAccessibleMethods(type, type.getPackageFragment().getElementName(), methods);
 		return methods;
@@ -152,6 +153,10 @@ public class JdtUtils {
 	 * @throws JavaModelException
 	 */
 	private static void addAccessibleMethods(IType type, String containingPkg, Map<String, IMethod> methods) throws JavaModelException {
+		if (isObjectClass(type) || isTestCaseBaseClass(type)) {
+			return;
+		}
+		
 		for (IMethod method : type.getMethods()) {
 			if (!method.exists() || method.isConstructor()) {
 				continue;
@@ -166,9 +171,20 @@ public class JdtUtils {
 		// Recursively add accessible methods from supertype
 		ITypeHierarchy superTypeHierarchy = type.newSupertypeHierarchy(new NullProgressMonitor());
 		IType superType = superTypeHierarchy.getSuperclass(type);
-		if (superType != null && superType.exists() && !Object.class.getName().equals(superType.getFullyQualifiedName())) {
+		if (superType != null && superType.exists()) {
 			addAccessibleMethods(superType, containingPkg, methods);
 		}
+	}
+
+	private static boolean isTestCaseBaseClass(IType superType) {
+		String fqn = superType.getFullyQualifiedName();
+		return 
+			"org.concordion.integration.junit3.ConcordionTestCase".equals(fqn) ||
+			"junit.framework.TestCase".equals(fqn);
+	}
+
+	private static boolean isObjectClass(IType superType) {
+		return Object.class.getName().equals(superType.getFullyQualifiedName());
 	}
 
 	/**

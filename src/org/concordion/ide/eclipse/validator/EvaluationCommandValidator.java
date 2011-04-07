@@ -74,7 +74,7 @@ public class EvaluationCommandValidator implements CommandValidator {
 	private Map<String, IMethod> loadMethods() {
 		if (methodMap == null) {
 			try {
-				methodMap = JdtUtils.getAccessibleMethods(fixture);
+				methodMap = JdtUtils.getAccessibleNonTestMethods(fixture);
 			} catch (JavaModelException e) {
 				EclipseUtils.logError("Unable to load methods for fixture", e);
 				return Collections.emptyMap();
