@@ -24,10 +24,10 @@ import org.eclipse.jdt.core.JavaModelException;
  * Development Tools usage.
  */
 public class JdtUtils {
-	public static IType loadClass(String fqn, IProject project) {
-		return null; // TODO
-	}
-
+	/**
+	 * @param file File located in a java project
+	 * @return The {@link IJavaProject} where file is located, or <code>null</code> if not applicable
+	 */
 	public static IJavaProject getJavaProjectForFile(IFile file) {
 		if (file != null) {
 			IProject project = file.getProject();
@@ -45,29 +45,63 @@ public class JdtUtils {
 
 	/**
 	 * Tries to locate the package under which a resource in a Java project's source folder
-	 * lives. 
-	 * @return The package the given resource lives in, or the empty string if not found
+	 * lives.
+	 * @return The package the given resource lives in, or the empty string if not found or in the default package
 	 */
 	public static String getPackageForFile(IFile specFile) {
 		IJavaProject p = getJavaProjectForFile(specFile);
-		if (p == null) {
+		String containerPathStr = containerPath(specFile);
+		if (p == null || containerPathStr == null) {
 			return "";
 		}
-		
-		IContainer container = specFile.getParent();
-		IPath containerPath = container.getProjectRelativePath();
-		if (!(container instanceof IFolder) || containerPath.isEmpty()) {
-			return "";
-		}
-		String containerPathStr = containerPath.toString();
 		
 		IPackageFragmentRoot[] roots;
 		try {
 			roots = p.getAllPackageFragmentRoots();
 		} catch (JavaModelException e) {
 			return "";
-		}		
+		}
 			
+		return getPackageForPath(containerPathStr, roots);
+	}
+
+	/**
+	 * Finds the type corresponding to the given Concordion Specification.
+	 * @param specFile
+	 * @return The type if found, or <code>null</code> otherwise
+	 */
+	public static IType findFixtureForSpec(IFile specFile) {
+		IJavaProject javaProject = getJavaProjectForFile(specFile);
+		if (javaProject == null) {
+			return null;
+		}
+		
+		String pkg = getPackageForFile(specFile);
+		String typeName = FileUtils.noExtensionFileName(specFile);
+		IType fixture = findTypeInProject(pkg, typeName + "Test", javaProject);
+		if (fixture == null)  {
+			fixture = findTypeInProject(pkg, typeName, javaProject);
+		}
+		
+		return fixture;
+	}
+
+	/** 
+	 * Returns methods accessible in the given type (public, protected, package-local
+	 * in same package. 
+	 */
+	public static Map<String, IMethod> getAccessibleMethods(IType type) throws JavaModelException {
+		Map<String, IMethod> methods = new HashMap<String, IMethod>();
+		addAccessibleMethods(type, type.getPackageFragment().getElementName(), methods);
+		return methods;
+	}
+
+	/**
+	 * @param containerPathStr A project-relative path of a resource in a Java source folder
+	 * @param roots All {@link IPackageFragmentRoot package fragment roots} to look in for the resource 
+	 * @return The package name for the given project-relative path
+	 */
+	private static String getPackageForPath(String containerPathStr, IPackageFragmentRoot[] roots) {
 		for (IPackageFragmentRoot root : roots) {
 			try {
 				if (root.exists() && !root.isArchive() && root.getKind() == IPackageFragmentRoot.K_SOURCE) {
@@ -98,34 +132,25 @@ public class JdtUtils {
 	}
 
 	/**
-	 * Finds the type corresponding to the given Concordion Specification.
-	 * @param specFile
-	 * @return The type if found, or <code>null</code> otherwise
+	 * @param specFile File location
+	 * @return A project-relative path for the given file if located in a folder
 	 */
-	public static IType findFixtureForSpec(IFile specFile) {
-		IJavaProject javaProject = getJavaProjectForFile(specFile);
-		if (javaProject == null) {
+	private static String containerPath(IFile specFile) {
+		IContainer container = specFile.getParent();
+		IPath containerPath = container.getProjectRelativePath();
+		if (!(container instanceof IFolder) || containerPath.isEmpty()) {
 			return null;
 		}
-		
-		String pkg = getPackageForFile(specFile);
-		String typeName = FileUtils.noExtensionFileName(specFile);
-		IType fixture = findTypeInProject(pkg, typeName + "Test", javaProject);
-		if (fixture == null)  {
-			fixture = findTypeInProject(pkg, typeName, javaProject);
-		}
-		
-		return fixture;
+		return containerPath.toString();
 	}
-	
-	public static Map<String, IMethod> getAccessibleMethods(IType type) throws JavaModelException {
-		Map<String, IMethod> methods = new HashMap<String, IMethod>();
-		
-		addAccessibleMethods(type, type.getPackageFragment().getElementName(), methods);
-		
-		return methods;
-	}
-	
+
+	/**
+	 * Adds all accessible methods (public, protected, package-local with same package) to a map 
+	 * @param type
+	 * @param containingPkg
+	 * @param methods A {@link Map} mapping from method name -&gt; to {@link IMethod}
+	 * @throws JavaModelException
+	 */
 	private static void addAccessibleMethods(IType type, String containingPkg, Map<String, IMethod> methods) throws JavaModelException {
 		for (IMethod method : type.getMethods()) {
 			if (!method.exists() || method.isConstructor()) {
@@ -146,10 +171,16 @@ public class JdtUtils {
 		}
 	}
 
+	/**
+	 * @return Whether the type is located in the given package, and {@link Flags Flags.isPackageDefault(flag)}
+	 */
 	private static boolean isPackageAccessible(IType type, String containingPkg, int flags) {
 		return containingPkg.equals(type.getPackageFragment().getElementName()) && Flags.isPackageDefault(flags);
 	}
 
+	/**
+	 * @return The {@link IType} if found in the java project, or <code>null</code> if the type cannot be loaded
+	 */
 	private static IType findTypeInProject(String pkg, String fqn, IJavaProject javaProject) {
 		try {
 			return javaProject.findType(pkg, fqn);

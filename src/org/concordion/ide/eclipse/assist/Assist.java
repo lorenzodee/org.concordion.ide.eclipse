@@ -6,6 +6,9 @@ import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
+/**
+ * Aggregates all {@link ProposalProvider proposal providers} for concordion proposals 
+ */
 public class Assist implements ProposalProvider {
 
 	private IFile specFile;

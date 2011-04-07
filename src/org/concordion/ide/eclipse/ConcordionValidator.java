@@ -13,6 +13,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ISelectionValidator;
 import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
 import org.eclipse.wst.validation.internal.core.ValidationException;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
@@ -21,17 +22,27 @@ import org.eclipse.wst.validation.internal.provisional.core.IValidator;
 import org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel;
 import org.w3c.dom.Element;
 
-@SuppressWarnings("restriction")
+/**
+ * An implementation of {@link IValidator} supporting {@link ISelectionValidator},
+ * validating Concordion Specifications as you type.
+ */
+@SuppressWarnings("restriction") // ISourceValidator, IDOMModel, ValidationException
 public class ConcordionValidator implements IValidator, ISourceValidator {
 
 	private IDocument document;
 	private RootElementParser rootElementParser = new RootElementParser();
 	
+	/**
+	 * Start session on {@link IDocument}
+	 */
 	@Override
 	public void connect(IDocument document) {
 		this.document = document;
 	}
 	
+	/**
+	 * End session
+	 */
 	@Override
 	public void disconnect(IDocument document) {
 		this.document = null;
@@ -39,11 +50,12 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 	
 	@Override
 	public void cleanup(IReporter reporter) {
-		// No cleanup required after validation for this validator
+		this.document = null;
 	}
 	
 	@Override
 	public void validate(IValidationContext helper, IReporter reporter) throws ValidationException {
+		// Remove any old validation errors
 		reporter.removeAllMessages(this);
 		// TODO: Use DOM model for isConcordionSpec
 		if (rootElementParser.isConcordionSpec(document)) {
@@ -66,6 +78,12 @@ public class ConcordionValidator implements IValidator, ISourceValidator {
 		}
 	}
 
+	/**
+	 * Validates the Concordion Specification 
+	 * @param domModel The HTML DOM for the specification, provided by the WST editor
+	 * @param reporter Error reporting interface
+	 * @param nsPrefix Concordion namespace prefix
+	 */
 	private void doParseSpec(IDOMModel domModel, IReporter reporter, String nsPrefix) {
 		Element root = domModel.getDocument().getDocumentElement();
 		CommandAttributeVisitor specParser = new CommandAttributeVisitor(

@@ -19,6 +19,9 @@ import org.eclipse.wst.sse.core.internal.provisional.IStructuredModel;
 import org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel;
 import org.osgi.framework.Bundle;
 
+/**
+ * Various helpers for common Eclipse-related tasks
+ */
 @SuppressWarnings("restriction") // IDomModel, IStructuredModel
 public class EclipseUtils {
 	public static void logError(String string, Throwable ex) {

@@ -17,6 +17,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
+/**
+ * Various utils for common file/stream tasks
+ */
 public class FileUtils {
 	public static String readToString(Class<?> type, String resourceName) throws IOException {
 		return readToString(type.getResourceAsStream(resourceName));

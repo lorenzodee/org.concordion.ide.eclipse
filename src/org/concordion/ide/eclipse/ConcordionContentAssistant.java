@@ -12,11 +12,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
 
+/**
+ * An implementation of {@link ICompletionProposalComputer}  that provids completion
+ * proposals in various places in Concordion HTML specifications. 
+ */
 public class ConcordionContentAssistant implements ICompletionProposalComputer {
 
 	private RootElementParser rootElementParser = new RootElementParser();
 	private ContextParser contextParser = new ContextParser();
 
+	/** Unused */
 	@Override
 	public void sessionStarted() {
 	}
@@ -47,11 +52,13 @@ public class ConcordionContentAssistant implements ICompletionProposalComputer {
 		return Collections.emptyList();
 	}
 
+	/** Unused */
 	@Override
 	public String getErrorMessage() {
 		return null;
 	}
 
+	/** Unused */
 	@Override
 	public void sessionEnded() {
 	}
