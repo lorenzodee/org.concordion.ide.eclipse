@@ -72,7 +72,8 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		final String containerName = page.getContainerName();
+		final String specContainerName = page.getSpecContainerName();
+		final String fixtureContainerName = page.getFixtureContainerName();
 		final String specFileName = page.getFileName();
 		final Language language = page.getLanguage();
 		
@@ -81,7 +82,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
 					String testCaseName = fixtureName(specFileName, testCaseSuffix, language);
-					doFinish(containerName, specFileName, testCaseName, language, monitor);
+					doFinish(specContainerName, fixtureContainerName, specFileName, testCaseName, language, monitor);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -106,26 +107,22 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	 * file if missing or just replace its contents, and open
 	 * the editor on the newly created file.
 	 */
-	private void doFinish(String containerName, String specFileName, String testCaseFileName, Language lang,  IProgressMonitor monitor) throws CoreException {
+	private void doFinish(String specContainerName, String fixtureContainerName, String specFileName, String testCaseFileName, Language lang,  IProgressMonitor monitor) throws CoreException {
 		
 		// create the spec html file
 		monitor.beginTask("Creating " + specFileName, 3);
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IResource resource = root.findMember(new Path(containerName));
-		if (!resource.exists() || !(resource instanceof IContainer)) {
-			EclipseUtils.throwCoreException("Container \"" + containerName + "\" does not exist.");
-		}
-		IContainer container = (IContainer) resource;
+		IContainer specContainer = getContainer(specContainerName);
+		IContainer fixtureContainer = getContainer(fixtureContainerName);
 		
 		// Create Spec file
-		final IFile specFile = FileUtils.createNewFile(container, specFileName, specTemplate(), monitor);
+		final IFile specFile = FileUtils.createNewFile(specContainer, specFileName, specTemplate(), monitor);
 		monitor.worked(1);
 		
 		// Create fixture file if required
 		final IFile fixtureFile;
 		if (testCaseFileName != null) {
 			Template template = fixtureTemplate(specFile, testCaseFileName, lang);
-			fixtureFile = FileUtils.createNewFile(container, testCaseFileName, template, monitor);
+			fixtureFile = FileUtils.createNewFile(fixtureContainer, testCaseFileName, template, monitor);
 		} else {
 			fixtureFile = null;
 		}
@@ -144,6 +141,16 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			}
 		});
 		monitor.worked(1);
+	}
+
+	private static IContainer getContainer(String containerName) throws CoreException {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IResource resource = root.findMember(new Path(containerName));
+		if (!resource.exists() || !(resource instanceof IContainer)) {
+			EclipseUtils.throwCoreException("Container \"" + containerName + "\" does not exist.");
+		}
+		IContainer container = (IContainer) resource;
+		return container;
 	}
 	
 	/**

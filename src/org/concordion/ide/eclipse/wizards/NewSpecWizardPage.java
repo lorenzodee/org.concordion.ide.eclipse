@@ -17,6 +17,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -31,11 +32,13 @@ import org.eclipse.ui.dialogs.ContainerSelectionDialog;
  * OR with the extension that matches the expected one (html).
  */
 public class NewSpecWizardPage extends WizardPage {
-	private Text containerText;
+	private Text specContainerText;
+	private Text fixtureContainerText;
 	private Text fileText;
 	private Button groovyRadio;
 	private Button javaRadio;
 	private ISelection selection;
+	private Button fixtureBrowseButton;
 
 	/**
 	 * Constructor for SampleNewWizardPage.
@@ -56,35 +59,20 @@ public class NewSpecWizardPage extends WizardPage {
 	public void createControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
-		container.setLayout(layout);
 		layout.numColumns = 3;
 		layout.verticalSpacing = 9;
+		container.setLayout(layout);
+
+		specContainerText = createLocation(container, "&Specification Location:");
+		createBrowseButton(container, specContainerText);
+		fixtureContainerText = createLocation(container, "&Fixture Location:");
+		fixtureBrowseButton = createBrowseButton(container, fixtureContainerText);
+
 		Label label = new Label(container, SWT.NULL);
-		label.setText("&Container:");
-
-		containerText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		containerText.setLayoutData(gd);
-		containerText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				dialogChanged();
-			}
-		});
-
-		Button button = new Button(container, SWT.PUSH);
-		button.setText("Browse...");
-		button.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				handleBrowse();
-			}
-		});
-		label = new Label(container, SWT.NULL);
 		label.setText("&File name:");
 
 		fileText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		gd = new GridData(GridData.FILL_HORIZONTAL);
+		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		fileText.setLayoutData(gd);
 		fileText.addModifyListener(new ModifyListener() {
 			@Override
@@ -105,12 +93,55 @@ public class NewSpecWizardPage extends WizardPage {
 		setControl(container);
 	}
 	
-	private static Button createRadio(Composite container, String text) {
+	private Button createBrowseButton(final Composite container, final Text containerText) {
+		Button browseButton = new Button(container, SWT.PUSH);
+		
+		browseButton.setText("Browse...");
+		browseButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleBrowse(containerText);
+			}
+		});
+				
+		return browseButton;
+	}
+
+	private Text createLocation(Composite container, String text) {
+		Label label = new Label(container, SWT.NULL);
+		label.setText(text);
+
+		final Text containerText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+		containerText.setLayoutData(gd);
+		containerText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				dialogChanged();
+			}
+		});
+		
+		return containerText;
+	}
+
+	private Button createRadio(Composite container, String text) {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 3;
 		Button radio = new Button(container, SWT.RADIO);
 		radio.setText(text);
 		radio.setLayoutData(gd);
+		
+		radio.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				dialogChanged();
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				dialogChanged();
+			}
+		});
+		
 		return radio;
 	}
 
@@ -152,7 +183,10 @@ public class NewSpecWizardPage extends WizardPage {
 					container = (IContainer) obj;
 				else
 					container = ((IResource) obj).getParent();
-				containerText.setText(container.getFullPath().toString());
+				
+				String path = container.getFullPath().toString();
+				specContainerText.setText(path);
+				fixtureContainerText.setText(path);
 			}
 		}
 		fileText.setText("Spec.html");
@@ -161,9 +195,9 @@ public class NewSpecWizardPage extends WizardPage {
 	/**
 	 * Uses the standard container selection dialog to choose the new value for
 	 * the container field.
+	 * @param containerText 
 	 */
-
-	private void handleBrowse() {
+	private void handleBrowse(Text containerText) {
 		ContainerSelectionDialog dialog = new ContainerSelectionDialog(
 				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
 				"Select new file container");
@@ -174,29 +208,16 @@ public class NewSpecWizardPage extends WizardPage {
 			}
 		}
 	}
-
+	
 	/**
 	 * Ensures that both text fields are set.
 	 */
 
 	private void dialogChanged() {
-		IResource container = ResourcesPlugin.getWorkspace().getRoot()
-				.findMember(new Path(getContainerName()));
+		validateContainer(getSpecContainerName());
+		validateContainer(getFixtureContainerName());
+		
 		String fileName = getFileName();
-
-		if (getContainerName().length() == 0) {
-			updateStatus("File container must be specified");
-			return;
-		}
-		if (container == null
-				|| (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
-			updateStatus("File container must exist");
-			return;
-		}
-		if (!container.isAccessible()) {
-			updateStatus("Project must be writable");
-			return;
-		}
 		if (fileName.length() == 0) {
 			updateStatus("File name must be specified");
 			return;
@@ -213,7 +234,29 @@ public class NewSpecWizardPage extends WizardPage {
 				return;
 			}
 		}
+		
+		boolean enabled = javaRadio.getSelection() || groovyRadio.getSelection();
+		fixtureContainerText.setEnabled(enabled);
+		fixtureBrowseButton.setEnabled(enabled);
+		
 		updateStatus(null);
+	}
+
+	private void validateContainer(String containerName) {
+		IResource container = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(containerName));
+
+		if (containerName.length() == 0) {
+			updateStatus("File container must be specified");
+			return;
+		}
+		if (container == null || (container.getType() & IResource.FOLDER) == 0) {
+			updateStatus("File container must exist and be either a folder or a project");
+			return;
+		}
+		if (!container.isAccessible()) {
+			updateStatus("File container must be writable");
+			return;
+		}
 	}
 
 	private void updateStatus(String message) {
@@ -221,10 +264,14 @@ public class NewSpecWizardPage extends WizardPage {
 		setPageComplete(message == null);
 	}
 
-	public String getContainerName() {
-		return containerText.getText();
+	public String getSpecContainerName() {
+		return specContainerText.getText();
 	}
-
+	
+	public String getFixtureContainerName() {
+		return fixtureContainerText.getText();
+	}
+	
 	public String getFileName() {
 		return fileText.getText();
 	}
