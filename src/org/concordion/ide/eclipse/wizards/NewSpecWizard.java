@@ -30,15 +30,25 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
+/**
+ * A new file wizard for creating a new Concordion Specification and
+ * a fixture to go with it. 
+ */
 public class NewSpecWizard extends Wizard implements INewWizard {
 	private String testCaseSuffix = "Test";
 	private NewSpecWizardPage page;
 	private ISelection selection;
 
+	/**
+	 * Creates a wizard page with a progress monitor
+	 */
 	public NewSpecWizard() {
 		setNeedsProgressMonitor(true);
 	}
 
+	/**
+	 * Adds the single {@link NewSpecWizardPage}
+	 */
 	@Override
 	public void addPages() {
 		page = new NewSpecWizardPage(selection);
@@ -70,7 +80,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					String testCaseName = testCaseName(specFileName, testCaseSuffix, language);
+					String testCaseName = fixtureName(specFileName, testCaseSuffix, language);
 					doFinish(containerName, specFileName, testCaseName, language, monitor);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
@@ -91,15 +101,6 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		return true;
 	}
 
-	protected static String testCaseName(String specFileName, String testCaseSuffix, Language lang) {
-		int dotPos = specFileName.lastIndexOf('.');
-		if (dotPos == -1) {
-			dotPos = specFileName.length();
-		}
-		String base = specFileName.substring(0, dotPos);
-		return base + testCaseSuffix  + lang.getFileSuffix();
-	}
-	
 	/**
 	 * The worker method. It will find the container, create the
 	 * file if missing or just replace its contents, and open
@@ -115,17 +116,30 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			EclipseUtils.throwCoreException("Container \"" + containerName + "\" does not exist.");
 		}
 		IContainer container = (IContainer) resource;
+		
+		// Create Spec file
 		final IFile specFile = FileUtils.createNewFile(container, specFileName, specTemplate(), monitor);
 		monitor.worked(1);
-		Template template = fixtureTemplate(specFile, testCaseFileName, lang);
-		final IFile fixtureFile = FileUtils.createNewFile(container, testCaseFileName, template, monitor);
+		
+		// Create fixture file if required
+		final IFile fixtureFile;
+		if (testCaseFileName != null) {
+			Template template = fixtureTemplate(specFile, testCaseFileName, lang);
+			fixtureFile = FileUtils.createNewFile(container, testCaseFileName, template, monitor);
+		} else {
+			fixtureFile = null;
+		}
 		monitor.worked(1);
 		
 		monitor.setTaskName("Opening file for editing...");
 		getShell().getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				openFile(fixtureFile);
+				// Open fixture first
+				if (fixtureFile != null) {
+					openFile(fixtureFile);
+				}
+				// Open spec second to have it in the currently focused editor
 				openFile(specFile);
 			}
 		});
@@ -149,10 +163,36 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		}
 	}
 
+	/**
+	 * Constructs a base + extension name for the fixture
+	 * @param specFileName Name of the spec file
+	 * @param testCaseSuffix String to append to the fixture base name
+	 * @param lang Language of the fixture
+	 * @return  A name such as "Spec" + "Test" + ".java"
+	 */
+	protected static String fixtureName(String specFileName, String testCaseSuffix, Language lang) {
+		if (lang == null) {
+			return null;
+		}
+		
+		int dotPos = specFileName.lastIndexOf('.');
+		if (dotPos == -1) {
+			dotPos = specFileName.length();
+		}
+		String base = specFileName.substring(0, dotPos);
+		return base + testCaseSuffix  + lang.getFileSuffix();
+	}
+
+	/**
+	 * @return A new {@link SpecTemplate}
+	 */
 	private static Template specTemplate() {
 		return new SpecTemplate();
 	}
 
+	/**
+	 * @return The {@link FixtureTemplate} for the given language
+	 */
 	private static Template fixtureTemplate(IFile specFile, String testCaseFileName, Language lang) {
 		String className = FileUtils.noExtensionFileName(testCaseFileName);
 		String pkg = JdtUtils.getPackageForFile(specFile);

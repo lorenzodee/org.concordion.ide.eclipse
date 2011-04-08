@@ -34,6 +34,7 @@ public class NewSpecWizardPage extends WizardPage {
 	private Text containerText;
 	private Text fileText;
 	private Button groovyRadio;
+	private Button javaRadio;
 	private ISelection selection;
 
 	/**
@@ -93,25 +94,26 @@ public class NewSpecWizardPage extends WizardPage {
 		});
 		
 		new Label(container, 0);
-		
-		gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = 3;
-		Button javaRadio = new Button(container, SWT.RADIO);
-		javaRadio.setText("Java Fixture");
+
+		javaRadio = createRadio(container, "Java Fixture");
+		groovyRadio = createRadio(container, "Groovy Fixture");
+		createRadio(container, "No Fixture");
 		javaRadio.setSelection(true);
-		javaRadio.setLayoutData(gd);
-		
-		gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = 3;
-		groovyRadio = new Button(container, SWT.RADIO);
-		groovyRadio.setText("Groovy Fixture");
-		groovyRadio.setLayoutData(gd);
-		
+
 		initialize();
 		dialogChanged();
 		setControl(container);
 	}
 	
+	private static Button createRadio(Composite container, String text) {
+		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 3;
+		Button radio = new Button(container, SWT.RADIO);
+		radio.setText(text);
+		radio.setLayoutData(gd);
+		return radio;
+	}
+
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
@@ -227,7 +229,12 @@ public class NewSpecWizardPage extends WizardPage {
 		return fileText.getText();
 	}
 	
+	/**
+	 * @return The language for the fixture (java/groovy) or <code>null</code> if no fixture should be generated
+	 */
 	public Language getLanguage() {
-		return groovyRadio.getSelection() ? Language.GROOVY : Language.JAVA;
+		return 
+			groovyRadio.getSelection() ? Language.GROOVY : 
+				javaRadio.getSelection() ? Language.JAVA : null;
 	}
 }
