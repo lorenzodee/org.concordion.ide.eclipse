@@ -1,7 +1,9 @@
 package org.concordion.ide.eclipse;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -11,6 +13,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -24,6 +27,29 @@ import org.eclipse.jdt.core.JavaModelException;
  * Development Tools usage.
  */
 public class JdtUtils {
+	
+	private static enum JunitVersion {
+		JUNIT3, JUNIT4
+	}
+	
+	private static final String TEST_CASE_TYPE = "junit.framework.TestCase";
+	private static final Set<String> filteredMethodAnnotations = new HashSet<String>();
+	private static final Set<String> filteredJunit3Methods = new HashSet<String>();
+	
+	static {
+		filteredMethodAnnotations.add("Before");
+		filteredMethodAnnotations.add("After");
+		filteredMethodAnnotations.add("BeforeClass");
+		filteredMethodAnnotations.add("AfterClass");
+		filteredMethodAnnotations.add("org.junit.Before");
+		filteredMethodAnnotations.add("org.junit.After");
+		filteredMethodAnnotations.add("org.junit.BeforeClass");
+		filteredMethodAnnotations.add("org.junit.AfterClass");
+		
+		filteredJunit3Methods.add("setUp");
+		filteredJunit3Methods.add("tearDown");
+	}
+	
 	/**
 	 * @param file File located in a java project
 	 * @return The {@link IJavaProject} where file is located, or <code>null</code> if not applicable
@@ -93,8 +119,29 @@ public class JdtUtils {
 	 */
 	public static Map<String, IMethod> getAccessibleNonTestMethods(IType type) throws JavaModelException {
 		Map<String, IMethod> methods = new HashMap<String, IMethod>();
-		addAccessibleMethods(type, type.getPackageFragment().getElementName(), methods);
+		ITypeHierarchy superTypeHierarchy = type.newSupertypeHierarchy(new NullProgressMonitor());
+		JunitVersion junitVersion = findJUnitVersion(type, superTypeHierarchy);
+		addAccessibleMethods(type, type.getPackageFragment().getElementName(), methods, superTypeHierarchy, junitVersion);
 		return methods;
+	}
+
+	/** 
+	 * Returns JUNIT3 if the type has a superclass of type TestCase anwhere in the hierarchy,
+	 * and JUNIT4 otherwise.
+	 * @param type The fixture's type
+	 * @param superTypeHierarchy Type hierarchy to search in
+	 * @return see {@link JunitVersion}
+	 */
+	private static JunitVersion findJUnitVersion(IType type, ITypeHierarchy superTypeHierarchy) {
+		IType sup;
+		while ((sup = superTypeHierarchy.getSuperclass(type)) != null) {
+			String fqn = sup.getFullyQualifiedName();
+			if (TEST_CASE_TYPE.equals(fqn)) {
+				return JunitVersion.JUNIT3;
+			}
+			type = sup;
+		}
+		return JunitVersion.JUNIT4;
 	}
 
 	/**
@@ -150,15 +197,17 @@ public class JdtUtils {
 	 * @param type
 	 * @param containingPkg
 	 * @param methods A {@link Map} mapping from method name -&gt; to {@link IMethod}
+	 * @param superTypeHierarchy 
+	 * @param junitVersion 
 	 * @throws JavaModelException
 	 */
-	private static void addAccessibleMethods(IType type, String containingPkg, Map<String, IMethod> methods) throws JavaModelException {
+	private static void addAccessibleMethods(IType type, String containingPkg, Map<String, IMethod> methods, ITypeHierarchy superTypeHierarchy, JunitVersion junitVersion) throws JavaModelException {
 		if (isObjectClass(type) || isTestCaseBaseClass(type)) {
 			return;
 		}
 		
 		for (IMethod method : type.getMethods()) {
-			if (!method.exists() || method.isConstructor()) {
+			if (!method.exists() || method.isConstructor() || isJUnitStateMethod(method, junitVersion)) {
 				continue;
 			}
 			
@@ -169,11 +218,30 @@ public class JdtUtils {
 		}
 
 		// Recursively add accessible methods from supertype
-		ITypeHierarchy superTypeHierarchy = type.newSupertypeHierarchy(new NullProgressMonitor());
 		IType superType = superTypeHierarchy.getSuperclass(type);
 		if (superType != null && superType.exists()) {
-			addAccessibleMethods(superType, containingPkg, methods);
+			addAccessibleMethods(superType, containingPkg, methods, superTypeHierarchy, junitVersion);
 		}
+	}
+
+	private static boolean isJUnitStateMethod(IMethod method, JunitVersion junitVersion) throws JavaModelException {
+		if (junitVersion == JunitVersion.JUNIT4) {
+			IAnnotation[] annotations = method.getAnnotations();
+			for (IAnnotation annotation : annotations) {
+				String name = annotation.getElementName();
+				if (filteredMethodAnnotations .contains(name)) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			String methodName = method.getElementName();
+			return isNoArgMethod(method) && filteredJunit3Methods.contains(methodName);
+		}
+	}
+
+	private static boolean isNoArgMethod(IMethod method) throws JavaModelException {
+		return method.getParameterNames().length == 0;
 	}
 
 	private static boolean isTestCaseBaseClass(IType superType) {

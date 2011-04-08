@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.concordion.ide.eclipse.JdtUtils;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -47,12 +46,9 @@ public class MethodProposalProvider implements ProposalProvider {
 	}
 	
 	private List<ICompletionProposal> createMethodProposals(int offset, String prefix) {
-		IJavaProject javaProject = JdtUtils.getJavaProjectForFile(specFile);
-		if (javaProject != null) {
-			IType type = JdtUtils.findFixtureForSpec(specFile);
-			if (type != null) {
-				return createAccessibleMethodProposals(type, offset, prefix);
-			}
+		IType type = JdtUtils.findFixtureForSpec(specFile);
+		if (type != null) {
+			return createAccessibleMethodProposals(type, offset, prefix);
 		}
 		return emptyList();
 	}
