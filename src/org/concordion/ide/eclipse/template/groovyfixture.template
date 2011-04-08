@@ -1,5 +1,7 @@
-import org.concordion.integration.junit3.ConcordionTestCase;
+import org.concordion.integration.junit4.ConcordionRunner;
+import org.junit.runner.RunWith;
 
-class $className extends ConcordionTestCase {
+@RunWith(ConcordionRunner.class)
+class $className {
 	$methods
 }
