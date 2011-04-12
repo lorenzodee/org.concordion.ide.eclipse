@@ -74,9 +74,15 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	public boolean performFinish() {
 		final String specContainerName = page.getSpecContainerName();
 		final String fixtureContainerName = page.getFixtureContainerName();
-		final String specFileName = page.getFileName();
 		final Language language = page.getLanguage();
+		String suppliedSpecFileName = page.getFileName();
 		
+		// Append .html if the specFileName does not have a file extension
+		if (!suppliedSpecFileName.contains(".")) {
+			suppliedSpecFileName = suppliedSpecFileName + ".html";
+		}
+		
+		final String specFileName = suppliedSpecFileName;
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
