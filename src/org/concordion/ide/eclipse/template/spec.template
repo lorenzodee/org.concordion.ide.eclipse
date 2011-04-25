@@ -1,5 +1,5 @@
-<html xmlns:concordion="http://www.concordion.org/2007/concordion">
+<html xmlns:c="http://www.concordion.org/2007/concordion">
 	
-	<span concordion:assertEquals="#var"></span>
+	<span c:assertEquals="#var"></span>
 	
 </html>
