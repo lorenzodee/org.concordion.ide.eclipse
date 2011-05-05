@@ -44,4 +44,18 @@
           name="Concordion Specification with Fixture">
     </wizard>
  </extension>
+ <extension
+       point="org.eclipse.ui.preferencePages">
+    <page
+          class="org.concordion.ide.eclipse.preferences.ConcordionPluginPreferencePage"
+          id="org.concordion.ide.eclipse.preferences.ConcordionPluginPreferencePage"
+          name="Concordion">
+    </page>
+ </extension>
+ <extension
+       point="org.eclipse.core.runtime.preferences">
+    <initializer
+          class="org.concordion.ide.eclipse.preferences.PreferenceInitializer">
+    </initializer>
+ </extension>
 </plugin>

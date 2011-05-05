@@ -1,0 +1,26 @@
+package org.concordion.ide.eclipse.preferences;
+
+import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
+import org.eclipse.jface.preference.IPreferenceStore;
+
+import org.concordion.ide.eclipse.Activator;
+import org.concordion.ide.eclipse.template.TemplateSupport;
+
+/**
+ * Class used to initialize default preference values.
+ */
+public class PreferenceInitializer extends AbstractPreferenceInitializer {
+
+	@Override
+	public void initializeDefaultPreferences() {
+		String javaFixtureTemplate = TemplateSupport.loadTemplateResource("javafixture.template");
+		String groovyFixtureTemplate = TemplateSupport.loadTemplateResource("groovyfixture.template");
+		String specTemplate = TemplateSupport.loadTemplateResource("spec.template");
+		
+		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		store.setDefault(PreferenceConstants.P_JAVA_FIXTURE_TEMPLATE, javaFixtureTemplate);
+		store.setDefault(PreferenceConstants.P_GROOVY_FIXTURE_TEMPLATE, groovyFixtureTemplate);
+		store.setDefault(PreferenceConstants.P_SPEC_TEMPLATE, specTemplate);
+	}
+
+}
