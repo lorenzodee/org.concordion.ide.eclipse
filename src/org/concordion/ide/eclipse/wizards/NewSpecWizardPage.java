@@ -2,12 +2,19 @@ package org.concordion.ide.eclipse.wizards;
 
 import org.concordion.ide.eclipse.template.FixtureTemplate.Language;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.ui.IJavaElementSearchConstants;
+import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogPage;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
@@ -23,8 +30,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
+import org.eclipse.ui.dialogs.SelectionDialog;
 
 /**
  * The "New" wizard page allows setting the container for the new file as well
@@ -32,13 +41,17 @@ import org.eclipse.ui.dialogs.ContainerSelectionDialog;
  * OR with the extension that matches the expected one (html).
  */
 public class NewSpecWizardPage extends WizardPage {
+	private static final boolean SINGLE_SELECTION = false;
 	private Text specContainerText;
 	private Text fixtureContainerText;
 	private Text fileText;
+	private Text superClassText;
 	private Button groovyRadio;
 	private Button javaRadio;
 	private ISelection selection;
 	private Button fixtureBrowseButton;
+	private IProject project;
+	private Button superClassBrowseButton;
 
 	/**
 	 * Constructor for SampleNewWizardPage.
@@ -81,6 +94,17 @@ public class NewSpecWizardPage extends WizardPage {
 			}
 		});
 		
+		// Spacer, leave third column empty (nicer than colspan, aligned with other text fields)
+		new Label(container, 0);
+		
+		Label superClassLabel = new Label(container, 0);
+		superClassLabel.setText("Superclass:");
+		superClassText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		GridData superClassLayoutData = new GridData(GridData.FILL_HORIZONTAL);
+		superClassText.setLayoutData(superClassLayoutData);
+		superClassBrowseButton = createSuperClassButton(container);
+		
+		// Spacer, leave third column empty (nicer than colspan, aligned with other text fields)
 		new Label(container, 0);
 
 		javaRadio = createRadio(container, "Java Fixture");
@@ -93,6 +117,52 @@ public class NewSpecWizardPage extends WizardPage {
 		setControl(container);
 	}
 	
+	private Button createSuperClassButton(Composite container) {
+		Button selectButton = new Button(container, SWT.PUSH);
+		
+		selectButton.setText("Select...");
+		selectButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleSelectSuperClass();
+			}
+		});
+				
+		return selectButton;
+	}
+
+	private void handleSelectSuperClass() {
+        Shell parent = getShell();
+        SelectionDialog dialog;
+		try {
+			if (project != null) {
+				dialog = JavaUI.createTypeDialog(
+				    parent, new ProgressMonitorDialog(parent),
+				    project,
+				    IJavaElementSearchConstants.CONSIDER_CLASSES, SINGLE_SELECTION);
+			} else {
+				dialog = JavaUI.createTypeDialog(
+				    parent, new ProgressMonitorDialog(parent),
+				    SearchEngine.createWorkspaceScope(),
+				    IJavaElementSearchConstants.CONSIDER_CLASSES, SINGLE_SELECTION);
+			}
+		} catch (JavaModelException e) {
+			return;
+		}
+        
+        dialog.setTitle("Select superclass");
+        dialog.setMessage("Fixture superclass");
+        if (dialog.open() == IDialogConstants.CANCEL_ID)
+            return;
+
+        Object[] types = dialog.getResult();
+        if (types == null || types.length == 0)
+            return;
+        
+        IType superClass = (IType) types[0];
+        superClassText.setText(superClass.getFullyQualifiedName());
+	}
+
 	private Button createBrowseButton(final Composite container, final Text containerText) {
 		Button browseButton = new Button(container, SWT.PUSH);
 		
@@ -187,6 +257,8 @@ public class NewSpecWizardPage extends WizardPage {
 				String path = container.getFullPath().toString();
 				specContainerText.setText(path);
 				fixtureContainerText.setText(path);
+				
+				project = container.getProject();
 			}
 		}
 		fileText.setText("Spec.html");
@@ -238,6 +310,8 @@ public class NewSpecWizardPage extends WizardPage {
 		boolean enabled = javaRadio.getSelection() || groovyRadio.getSelection();
 		fixtureContainerText.setEnabled(enabled);
 		fixtureBrowseButton.setEnabled(enabled);
+		superClassText.setEnabled(enabled);
+		superClassBrowseButton.setEnabled(enabled);
 		
 		updateStatus(null);
 	}
@@ -274,6 +348,14 @@ public class NewSpecWizardPage extends WizardPage {
 	
 	public String getFileName() {
 		return fileText.getText();
+	}
+	
+	/**
+	 * @return Super class fully qualified name, or <code>null</code> if not set
+	 */
+	public String getSuperClass() {
+		String superClass = superClassText.getText();
+		return superClass != null && superClass.length() > 0 ? superClass : null;
 	}
 	
 	/**

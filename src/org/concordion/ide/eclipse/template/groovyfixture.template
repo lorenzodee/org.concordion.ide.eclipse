@@ -1,7 +1,7 @@
 import org.concordion.integration.junit4.ConcordionRunner;
 import org.junit.runner.RunWith;
-
+$import
 @RunWith(ConcordionRunner.class)
-class $className {
+class $className $extends{
 	$methods
 }

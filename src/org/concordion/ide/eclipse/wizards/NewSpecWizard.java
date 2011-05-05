@@ -1,7 +1,10 @@
 package org.concordion.ide.eclipse.wizards;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.Collections;
 
+import org.concordion.ide.eclipse.ClassUtils;
 import org.concordion.ide.eclipse.EclipseUtils;
 import org.concordion.ide.eclipse.FileUtils;
 import org.concordion.ide.eclipse.JdtUtils;
@@ -76,6 +79,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		final String fixtureContainerName = page.getFixtureContainerName();
 		final Language language = page.getLanguage();
 		String suppliedSpecFileName = page.getFileName();
+		final String superClass = page.getSuperClass();
 		
 		// Append .html if the specFileName does not have a file extension
 		if (!suppliedSpecFileName.contains(".")) {
@@ -88,7 +92,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
 					String testCaseName = fixtureName(specFileName, testCaseSuffix, language);
-					doFinish(specContainerName, fixtureContainerName, specFileName, testCaseName, language, monitor);
+					doFinish(specContainerName, fixtureContainerName, specFileName, testCaseName, language, monitor, superClass);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -112,8 +116,9 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	 * The worker method. It will find the container, create the
 	 * file if missing or just replace its contents, and open
 	 * the editor on the newly created file.
+	 * @param superClass 
 	 */
-	private void doFinish(String specContainerName, String fixtureContainerName, String specFileName, String testCaseFileName, Language lang,  IProgressMonitor monitor) throws CoreException {
+	private void doFinish(String specContainerName, String fixtureContainerName, String specFileName, String testCaseFileName, Language lang,  IProgressMonitor monitor, String superClass) throws CoreException {
 		
 		// create the spec html file
 		monitor.beginTask("Creating " + specFileName, 3);
@@ -127,7 +132,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		// Create fixture file if required
 		final IFile fixtureFile;
 		if (testCaseFileName != null) {
-			Template template = fixtureTemplate(specFile, testCaseFileName, lang);
+			Template template = fixtureTemplate(specFile, testCaseFileName, lang, superClass);
 			fixtureFile = FileUtils.createNewFile(fixtureContainer, testCaseFileName, template, monitor);
 		} else {
 			fixtureFile = null;
@@ -204,11 +209,20 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	}
 
 	/**
+	 * @param superClass 
 	 * @return The {@link FixtureTemplate} for the given language
 	 */
-	private static Template fixtureTemplate(IFile specFile, String testCaseFileName, Language lang) {
+	private static Template fixtureTemplate(IFile specFile, String testCaseFileName, Language lang, String superClass) {
 		String className = FileUtils.noExtensionFileName(testCaseFileName);
 		String pkg = JdtUtils.getPackageForFile(specFile);
-		return new FixtureTemplate(className, pkg, lang);
+		
+		Collection<String> imports;
+		if (superClass != null && ClassUtils.containingPackage(superClass) != null) {
+			imports = Collections.singleton(superClass);
+		} else {
+			imports = Collections.emptySet();
+		}
+		
+		return new FixtureTemplate(className, pkg, superClass, lang, imports);
 	}
 }

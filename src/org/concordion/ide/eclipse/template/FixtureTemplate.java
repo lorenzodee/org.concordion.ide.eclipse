@@ -4,9 +4,13 @@ import static org.concordion.ide.eclipse.template.TemplateSupport.NL;
 import static org.concordion.ide.eclipse.template.TemplateSupport.loadTemplateResource;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
+import org.concordion.ide.eclipse.ClassUtils;
 import org.concordion.ide.eclipse.FileUtils;
 import org.concordion.ide.eclipse.JobRunner;
 import org.concordion.ide.eclipse.JobRunner.Task;
@@ -18,6 +22,8 @@ public class FixtureTemplate implements Template {
 	private String className;
 	private String pkg;
 	private Language lang;
+	private String superClass;
+	private Collection<String> imports;
 
 	public static enum Language {
 		JAVA(".java"), GROOVY(".groovy");
@@ -30,10 +36,12 @@ public class FixtureTemplate implements Template {
 		}
 	}
 	
-	public FixtureTemplate(String className, String pkg, Language lang) {
+	public FixtureTemplate(String className, String pkg, String superClass, Language lang, Collection<String> imports) {
 		this.className = className;
 		this.pkg = pkg;
+		this.superClass = superClass;
 		this.lang = lang;
+		this.imports = imports == null ? Collections.<String>emptyList() : new ArrayList<String>(imports);
 	}
 
 	public void generateTo(IFile file) {
@@ -54,8 +62,27 @@ public class FixtureTemplate implements Template {
 		
 		String template = setPackageDecl();
 		template = setClassName(template);
+		template = addImports(template);
+		template = setSuperClass(template);
 		template = addMethods(template);
 		return template;
+	}
+
+	private String addImports(String template) {
+		StringBuilder importsStr = new StringBuilder();
+		for (String imp : imports) {
+			importsStr.append("import ").append(imp).append(';').append(NL);
+		}
+		return template.replace("$import", importsStr);
+	}
+
+	private String setSuperClass(String template) {
+		String extendsStr = "";
+		if (superClass != null) {
+			String unqualifiedName = ClassUtils.unqualifiedName(superClass);
+			extendsStr = "extends " + unqualifiedName + " ";
+		}
+		return template.replace("$extends", extendsStr);
 	}
 
 	private String setPackageDecl() {
