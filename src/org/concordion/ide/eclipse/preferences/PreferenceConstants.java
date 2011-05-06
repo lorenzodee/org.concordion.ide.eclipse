@@ -11,4 +11,5 @@ public class PreferenceConstants {
 	
 	public static final String P_GROOVY_FIXTURE_TEMPLATE = "groovyFixtureTemplate";
 
+	public static final String P_FIXTURE_TEST_SUFFIX = "fixtureTestSuffix";
 }
