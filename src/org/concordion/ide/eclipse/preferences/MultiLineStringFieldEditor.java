@@ -321,7 +321,7 @@ public class MultiLineStringFieldEditor extends FieldEditor {
      */
     public Text getTextControl(Composite parent) {
         if (textField == null) {
-            textField = new Text(parent, SWT.MULTI | SWT.BORDER);
+            textField = new Text(parent, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
             textField.setFont(parent.getFont());
             switch (validateStrategy) {
             case VALIDATE_ON_KEY_STROKE:
