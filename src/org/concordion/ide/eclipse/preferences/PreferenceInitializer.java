@@ -12,9 +12,9 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
 	@Override
 	public void initializeDefaultPreferences() {
-		String javaFixtureTemplate = TemplateSupport.loadTemplateResource("javafixture.template");
-		String groovyFixtureTemplate = TemplateSupport.loadTemplateResource("groovyfixture.template");
-		String specTemplate = TemplateSupport.loadTemplateResource("spec.template");
+		String javaFixtureTemplate = TemplateSupport.loadDefaultTemplateResource("javafixture.template");
+		String groovyFixtureTemplate = TemplateSupport.loadDefaultTemplateResource("groovyfixture.template");
+		String specTemplate = TemplateSupport.loadDefaultTemplateResource("spec.template");
 		
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 		store.setDefault(PreferenceConstants.P_JAVA_FIXTURE_TEMPLATE, javaFixtureTemplate);

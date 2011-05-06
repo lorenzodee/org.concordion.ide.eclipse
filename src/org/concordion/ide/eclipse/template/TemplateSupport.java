@@ -7,7 +7,7 @@ import org.concordion.ide.eclipse.FileUtils;
 public class TemplateSupport {
 	public static final String NL = System.getProperty("line.separator");
 
-	public static String loadTemplateResource(String resourceName) {
+	public static String loadDefaultTemplateResource(String resourceName) {
 		try {
 			String tmpl = FileUtils.readToString(FixtureTemplate.class, resourceName);
 			return tmpl.replace("\n", NL);
