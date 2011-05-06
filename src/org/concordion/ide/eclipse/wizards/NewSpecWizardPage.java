@@ -52,17 +52,20 @@ public class NewSpecWizardPage extends WizardPage {
 	private Button fixtureBrowseButton;
 	private IProject project;
 	private Button superClassBrowseButton;
+	private Button testSuffixCheck;
+	private boolean initIsAddTestSuffix;
 
 	/**
 	 * Constructor for SampleNewWizardPage.
 	 * 
 	 * @param pageName
 	 */
-	public NewSpecWizardPage(ISelection selection) {
+	public NewSpecWizardPage(ISelection selection, boolean isAddTestSuffix) {
 		super("wizardPage");
 		setTitle("New Concordion Specification");
 		setDescription("Creates a new Concordion specification HTML file and the associated Java fixture.");
 		this.selection = selection;
+		this.initIsAddTestSuffix = isAddTestSuffix;
 	}
 
 	/**
@@ -107,11 +110,15 @@ public class NewSpecWizardPage extends WizardPage {
 		// Spacer, leave third column empty (nicer than colspan, aligned with other text fields)
 		new Label(container, 0);
 
-		javaRadio = createRadio(container, "Java Fixture");
-		groovyRadio = createRadio(container, "Groovy Fixture");
-		createRadio(container, "No Fixture");
+
+		javaRadio = createButton(container, "Java Fixture", SWT.RADIO);
+		groovyRadio = createButton(container, "Groovy Fixture", SWT.RADIO);
+		createButton(container, "No Fixture", SWT.RADIO);
 		javaRadio.setSelection(true);
 
+		testSuffixCheck = createButton(container, "Append 'Test' suffix to fixture class name", SWT.CHECK);
+		testSuffixCheck.setSelection(initIsAddTestSuffix);
+		
 		initialize();
 		dialogChanged();
 		setControl(container);
@@ -194,10 +201,10 @@ public class NewSpecWizardPage extends WizardPage {
 		return containerText;
 	}
 
-	private Button createRadio(Composite container, String text) {
+	private Button createButton(Composite container, String text, int style) {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 3;
-		Button radio = new Button(container, SWT.RADIO);
+		Button radio = new Button(container, style);
 		radio.setText(text);
 		radio.setLayoutData(gd);
 		
@@ -312,6 +319,7 @@ public class NewSpecWizardPage extends WizardPage {
 		fixtureBrowseButton.setEnabled(enabled);
 		superClassText.setEnabled(enabled);
 		superClassBrowseButton.setEnabled(enabled);
+		testSuffixCheck.setEnabled(enabled);
 		
 		updateStatus(null);
 	}
@@ -356,6 +364,10 @@ public class NewSpecWizardPage extends WizardPage {
 	public String getSuperClass() {
 		String superClass = superClassText.getText();
 		return superClass != null && superClass.length() > 0 ? superClass : null;
+	}
+	
+	public boolean isAppendTestSuffixToFixtureClass() {
+		return testSuffixCheck.getSelection();
 	}
 	
 	/**

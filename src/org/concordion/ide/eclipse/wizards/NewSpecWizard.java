@@ -4,10 +4,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.concordion.ide.eclipse.Activator;
 import org.concordion.ide.eclipse.ClassUtils;
 import org.concordion.ide.eclipse.EclipseUtils;
 import org.concordion.ide.eclipse.FileUtils;
 import org.concordion.ide.eclipse.JdtUtils;
+import org.concordion.ide.eclipse.preferences.PreferenceConstants;
 import org.concordion.ide.eclipse.template.FixtureTemplate;
 import org.concordion.ide.eclipse.template.FixtureTemplate.Language;
 import org.concordion.ide.eclipse.template.SpecTemplate;
@@ -22,6 +24,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -38,7 +41,6 @@ import org.eclipse.ui.ide.IDE;
  * a fixture to go with it. 
  */
 public class NewSpecWizard extends Wizard implements INewWizard {
-	private String testCaseSuffix = "Test";
 	private NewSpecWizardPage page;
 	private ISelection selection;
 
@@ -54,7 +56,10 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	 */
 	@Override
 	public void addPages() {
-		page = new NewSpecWizardPage(selection);
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		boolean isAppendTestSuffix = preferenceStore.getBoolean(PreferenceConstants.P_FIXTURE_TEST_SUFFIX);
+		
+		page = new NewSpecWizardPage(selection, isAppendTestSuffix);
 		addPage(page);
 	}
 
@@ -80,6 +85,11 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		final Language language = page.getLanguage();
 		String suppliedSpecFileName = page.getFileName();
 		final String superClass = page.getSuperClass();
+		final boolean isAppendTestSuffixToFixtureClass = page.isAppendTestSuffixToFixtureClass();
+		
+		// Save test suffix preference
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		preferenceStore.setValue(PreferenceConstants.P_FIXTURE_TEST_SUFFIX, isAppendTestSuffixToFixtureClass);
 		
 		// Append .html if the specFileName does not have a file extension
 		if (!suppliedSpecFileName.contains(".")) {
@@ -91,7 +101,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					String testCaseName = fixtureName(specFileName, testCaseSuffix, language);
+					String testCaseName = fixtureName(specFileName, isAppendTestSuffixToFixtureClass, language);
 					doFinish(specContainerName, fixtureContainerName, specFileName, testCaseName, language, monitor, superClass);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
@@ -184,11 +194,11 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	/**
 	 * Constructs a base + extension name for the fixture
 	 * @param specFileName Name of the spec file
-	 * @param testCaseSuffix String to append to the fixture base name
+	 * @param isAppendTestSuffixToFixtureClass Whether to append Test to the fixture class name
 	 * @param lang Language of the fixture
 	 * @return  A name such as "Spec" + "Test" + ".java"
 	 */
-	protected static String fixtureName(String specFileName, String testCaseSuffix, Language lang) {
+	protected static String fixtureName(String specFileName, boolean isAppendTestSuffixToFixtureClass, Language lang) {
 		if (lang == null) {
 			return null;
 		}
@@ -198,7 +208,8 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			dotPos = specFileName.length();
 		}
 		String base = specFileName.substring(0, dotPos);
-		return base + testCaseSuffix  + lang.getFileSuffix();
+		String suffix = isAppendTestSuffixToFixtureClass ? "Test" : "";
+		return base + suffix  + lang.getFileSuffix();
 	}
 
 	/**
