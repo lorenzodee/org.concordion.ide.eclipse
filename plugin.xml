@@ -58,4 +58,35 @@
           class="org.concordion.ide.eclipse.preferences.PreferenceInitializer">
     </initializer>
  </extension>
+
+  <extension point="org.eclipse.ui.commands">
+    <command
+        description="Go To Fixture"
+        id="org.concordion.eclipse.ide.command.gotofixture"
+        name="Go To Fixture">
+    </command>
+  </extension>
+
+  <extension point="org.eclipse.ui.handlers">
+    <handler
+        class="org.concordion.ide.eclipse.command.GoToFixtureCommandHandler"
+        commandId="org.concordion.eclipse.ide.command.gotofixture">
+    </handler>
+  </extension>
+
+<extension point="org.eclipse.ui.menus">
+  <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+     <command commandId="org.concordion.eclipse.ide.command.gotofixture" style="push">
+
+       <visibleWhen checkEnabled="false">
+         <with variable="activeContexts">
+             <iterate operator="or">
+                 <equals value="org.eclipse.wst.html.core.htmlsource"/>
+             </iterate>
+         </with>
+       </visibleWhen>
+      
+     </command>
+  </menuContribution>
+</extension>
 </plugin>
