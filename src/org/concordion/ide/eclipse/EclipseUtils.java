@@ -33,7 +33,8 @@ public class EclipseUtils {
 	public static Image createImage(String imagePath) {
 		final Bundle pluginBundle = Platform.getBundle(Activator.PLUGIN_ID);
 		final Path imageFilePath = new Path(Activator.IMAGE_PATH + imagePath);
-		final URL imageFileUrl = FileLocator.find(pluginBundle, imageFilePath, Collections.emptyMap());
+		final URL imageFileUrl = FileLocator.find(
+				pluginBundle, imageFilePath, Collections.<String, String>emptyMap());
 		return ImageDescriptor.createFromURL(imageFileUrl).createImage();
 	}
 	

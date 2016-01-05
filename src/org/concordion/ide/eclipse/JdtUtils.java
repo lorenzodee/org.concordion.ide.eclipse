@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.concordion.ide.eclipse.preferences.PreferenceConstants;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -21,9 +22,10 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
- * Various utility methods for simplyfied Eclipse Java
+ * Various utility methods for simplified Eclipse Java
  * Development Tools usage.
  */
 public class JdtUtils {
@@ -104,11 +106,13 @@ public class JdtUtils {
 		
 		String pkg = getPackageForFile(specFile);
 		String typeName = FileUtils.noExtensionFileName(specFile);
-		IType fixture = findTypeInProject(pkg, typeName + "Test", javaProject);
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		String suffix = preferenceStore.getString(PreferenceConstants.P_FIXTURE_TEST_SUFFIX);
+		IType fixture = findTypeInProject(pkg, typeName + suffix, javaProject);
 		if (fixture == null)  {
 			fixture = findTypeInProject(pkg, typeName, javaProject);
 		}
-		
+
 		return fixture;
 	}
 
@@ -126,7 +130,7 @@ public class JdtUtils {
 	}
 
 	/** 
-	 * Returns JUNIT3 if the type has a superclass of type TestCase anwhere in the hierarchy,
+	 * Returns JUNIT3 if the type has a superclass of type TestCase anywhere in the hierarchy,
 	 * and JUNIT4 otherwise.
 	 * @param type The fixture's type
 	 * @param superTypeHierarchy Type hierarchy to search in

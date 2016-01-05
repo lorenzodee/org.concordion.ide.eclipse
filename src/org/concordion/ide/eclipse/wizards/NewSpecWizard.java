@@ -88,9 +88,9 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 		final boolean isAppendTestSuffixToFixtureClass = page.isAppendTestSuffixToFixtureClass();
 		
 		// Save test suffix preference
-		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-		preferenceStore.setValue(PreferenceConstants.P_FIXTURE_TEST_SUFFIX, isAppendTestSuffixToFixtureClass);
-		
+		// IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		// preferenceStore.setValue(PreferenceConstants.P_FIXTURE_TEST_SUFFIX, isAppendTestSuffixToFixtureClass);
+
 		// Append .html if the specFileName does not have a file extension
 		if (!suppliedSpecFileName.contains(".")) {
 			suppliedSpecFileName = suppliedSpecFileName + ".html";
@@ -198,7 +198,7 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 	 * @param lang Language of the fixture
 	 * @return  A name such as "Spec" + "Test" + ".java"
 	 */
-	protected static String fixtureName(String specFileName, boolean isAppendTestSuffixToFixtureClass, Language lang) {
+	protected String fixtureName(String specFileName, boolean isAppendTestSuffixToFixtureClass, Language lang) {
 		if (lang == null) {
 			return null;
 		}
@@ -208,8 +208,8 @@ public class NewSpecWizard extends Wizard implements INewWizard {
 			dotPos = specFileName.length();
 		}
 		String base = specFileName.substring(0, dotPos);
-		String suffix = isAppendTestSuffixToFixtureClass ? "Test" : "";
-		return base + suffix  + lang.getFileSuffix();
+		String suffix = (isAppendTestSuffixToFixtureClass ? page.getFixtureNameSuffix() : "");
+		return base + suffix + lang.getFileSuffix();
 	}
 
 	/**

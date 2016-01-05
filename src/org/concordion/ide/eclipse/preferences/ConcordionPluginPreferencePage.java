@@ -1,8 +1,8 @@
 package org.concordion.ide.eclipse.preferences;
 
 import org.concordion.ide.eclipse.Activator;
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -36,7 +36,7 @@ public class ConcordionPluginPreferencePage extends FieldEditorPreferencePage im
 		addField(new MultiLineStringFieldEditor(PreferenceConstants.P_SPEC_TEMPLATE, "Specification Template:", parent));
 		addField(new MultiLineStringFieldEditor(PreferenceConstants.P_JAVA_FIXTURE_TEMPLATE, "Java Fixture Template:", parent));
 		addField(new MultiLineStringFieldEditor(PreferenceConstants.P_GROOVY_FIXTURE_TEMPLATE, "Groovy Fixture Template:", parent));
-		addField(new BooleanFieldEditor(PreferenceConstants.P_FIXTURE_TEST_SUFFIX, "Append 'Test' suffix to fixture class name:", parent));
+		addField(new StringFieldEditor(PreferenceConstants.P_FIXTURE_TEST_SUFFIX, "Fixture class name suffix:", parent));
 	}
 
 	@Override

@@ -20,7 +20,8 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.P_JAVA_FIXTURE_TEMPLATE, javaFixtureTemplate);
 		store.setDefault(PreferenceConstants.P_GROOVY_FIXTURE_TEMPLATE, groovyFixtureTemplate);
 		store.setDefault(PreferenceConstants.P_SPEC_TEMPLATE, specTemplate);
-		store.setDefault(PreferenceConstants.P_FIXTURE_TEST_SUFFIX, true);
+		// The default ought to be "Fixture", since it is not a test.
+		store.setDefault(PreferenceConstants.P_FIXTURE_TEST_SUFFIX, "Fixture");
 	}
 
 }

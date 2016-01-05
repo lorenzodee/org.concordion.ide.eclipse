@@ -1,5 +1,7 @@
 package org.concordion.ide.eclipse.wizards;
 
+import org.concordion.ide.eclipse.Activator;
+import org.concordion.ide.eclipse.preferences.PreferenceConstants;
 import org.concordion.ide.eclipse.template.FixtureTemplate.Language;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -15,6 +17,7 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
@@ -116,7 +119,7 @@ public class NewSpecWizardPage extends WizardPage {
 		createButton(container, "No Fixture", SWT.RADIO);
 		javaRadio.setSelection(true);
 
-		testSuffixCheck = createButton(container, "Append 'Test' suffix to fixture class name", SWT.CHECK);
+		testSuffixCheck = createButton(container, getTestSuffixCheckButtonText(), SWT.CHECK);
 		testSuffixCheck.setSelection(initIsAddTestSuffix);
 		
 		initialize();
@@ -218,8 +221,17 @@ public class NewSpecWizardPage extends WizardPage {
 				dialogChanged();
 			}
 		});
-		
+
 		return radio;
+	}
+
+	public String getFixtureNameSuffix() {
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		return preferenceStore.getString(PreferenceConstants.P_FIXTURE_TEST_SUFFIX);
+	}
+
+	private String getTestSuffixCheckButtonText() {
+		return "Append '" + getFixtureNameSuffix() + "' suffix to fixture class name";
 	}
 
 	@Override
@@ -230,6 +242,7 @@ public class NewSpecWizardPage extends WizardPage {
 			getShell().getDisplay().asyncExec(new Runnable() {
 				@Override
 				public void run() {
+					testSuffixCheck.setText(getTestSuffixCheckButtonText());
 					fileText.setFocus();
 				}
 			});
